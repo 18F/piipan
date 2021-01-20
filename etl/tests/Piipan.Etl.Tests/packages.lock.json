@@ -64,8 +64,8 @@
       },
       "CsvHelper": {
         "type": "Transitive",
-        "resolved": "19.0.0",
-        "contentHash": "vUHF8wPOVvdtUQ4sXQI62jEIGcz5p7MG3Qf4Hazg+3EZQFh+UoTASEG0a1tsGmhNsHZ/Y+qRO+SgLMZO8jNcSg==",
+        "resolved": "21.0.4",
+        "contentHash": "wNunebTjWygKYfxsn1doZjsjQ3z27bHgUzZNb0tcgx6TcFg4h/IyW24qmSpD5OUOmYrjjYuoCBqHx7jieaaa6A==",
         "dependencies": {
           "Microsoft.CSharp": "4.5.0"
         }
@@ -2149,7 +2149,7 @@
       "piipan.etl": {
         "type": "Project",
         "dependencies": {
-          "CsvHelper": "19.0.0",
+          "CsvHelper": "21.0.4",
           "Microsoft.Azure.Services.AppAuthentication": "1.6.0",
           "Microsoft.Azure.WebJobs.Extensions.EventGrid": "2.1.0",
           "Microsoft.Azure.WebJobs.Extensions.Storage": "4.0.3",

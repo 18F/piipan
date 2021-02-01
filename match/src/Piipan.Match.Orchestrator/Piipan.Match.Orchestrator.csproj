@@ -6,7 +6,7 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="9.4.0" />
+    <PackageReference Include="FluentValidation" Version="9.5.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.13" />
   </ItemGroup>

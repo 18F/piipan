@@ -1,0 +1,41 @@
+ParticipantUploadsResponse:
+  type: object
+  properties:
+    body:
+      $ref: '#/ParticipantUploadsBody'
+ParticipantUploadsBody:
+  type: object
+  required:
+    - meta
+    - data
+  properties:
+    meta:
+      $ref: '#/Meta'
+    data:
+      type: array
+      items:
+        $ref: '#/ParticipantUpload'
+ParticipantUpload:
+  type: object
+  required:
+    - state
+    - uploaded_at
+  properties:
+    state:
+      type: string
+      description: "state that performed the upload of participants"
+    uploaded_at:
+      type: string
+      description: "when state uploaded participants"
+Meta:
+  type: object
+  properties:
+    page:
+      type: integer
+      description: "current page returned"
+    limit:
+      type: integer
+      description: "limit of how many records returned"
+    offset:
+      type: integer
+      description: "offset from first page"

@@ -176,3 +176,52 @@ while IFS=, read -r abbr name ; do
         --included-event-types Microsoft.Storage.BlobCreated \
         --subject-begins-with /blobServices/default/containers/upload/blobs/
 done < states.csv
+
+# Create Metrics API Function App in Azure
+METRICS_FUNC_APP_NAME=PiipanMetricsApi
+
+echo "Creating function app $METRICS_FUNC_APP_NAME in Azure"
+az functionapp create \
+  --resource-group $RESOURCE_GROUP \
+  --consumption-plan-location $LOCATION \
+  --runtime dotnet \
+  --functions-version 3 \
+  --name $METRICS_FUNC_APP_NAME \
+  --storage-account $FUNC_STORAGE_NAME
+
+# wait for app creation
+echo "Waiting to publish api function app"
+sleep 60s
+
+echo "Configure settings on $METRICS_FUNC_APP_NAME"
+az functionapp config appsettings set \
+  --resource-group $RESOURCE_GROUP \
+  --name $METRICS_FUNC_APP_NAME \
+  --settings \
+    $DB_CONN_STR_KEY="$DB_CONN_STR" \
+  --output none
+
+# Assumes if any identity is set, it is the one we are specifying below
+exists=`az functionapp identity show \
+  --resource-group $RESOURCE_GROUP \
+  --name $METRICS_FUNC_APP_NAME`
+
+if [ -z "$exists" ]; then
+  # Connect creds from function app to key vault so app can connect to db
+  principalId=`az functionapp identity assign \
+    --resource-group $RESOURCE_GROUP \
+    --name $METRICS_FUNC_APP_NAME \
+    --query principalId \
+    --output tsv`
+
+  az keyvault set-policy \
+    --name $VAULT_NAME \
+    --object-id $principalId \
+    --secret-permissions get list
+fi
+
+# publish metrics function app
+echo "Publishing function app $METRICS_FUNC_APP_NAME"
+pushd ../metrics/src/Piipan.Metrics/$METRICS_FUNC_APP_NAME
+  func azure functionapp publish $METRICS_FUNC_APP_NAME --dotnet
+popd

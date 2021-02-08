@@ -1,0 +1,29 @@
+# Orchestrator API base spec
+openapi: 3.0.0
+info:
+  title: "Metrics API"
+  version: 1.0.0
+  description: "API for metrics and metadata for the Piipan system."
+tags:
+  - name: "Metrics"
+servers:
+  - url: "/v1"
+paths:
+  /participant_uploads:
+    get:
+      tags:
+        - "Participant Uploads"
+      summary: "participant uploads index"
+      description: "Queries metrics database to show which states are uploading participants and when"
+      responses:
+        '200':
+          description: "List of participant upload events"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantUploadsResponse'
+components:
+  schemas:
+    ParticipantUploadsResponse:
+      $ref: '../schemas/participant-uploads.yaml#/ParticipantUploadsResponse'
+

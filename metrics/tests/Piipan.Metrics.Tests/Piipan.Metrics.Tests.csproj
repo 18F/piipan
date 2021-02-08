@@ -18,5 +18,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Piipan.Metrics\PiipanMetricsFunctions\PiipanMetricsFunctions.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Piipan.Metrics\Piipan.Metrics.Models\Piipan.Metrics.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Piipan.Metrics\PiipanMetricsApi\Piipan.Metrics.Api.csproj" />
+  </ItemGroup>
 
 </Project>

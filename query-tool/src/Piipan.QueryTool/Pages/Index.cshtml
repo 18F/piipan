@@ -4,14 +4,22 @@
 @{
     ViewData["Title"] = "NAC Query Tool";
 }
-<div class="text-center">
+<div class="grid-container">
     <h1>@Model.Title</h1>
-    <form action="">
-        <div><label for="last">Last Name:</label><input type="text" name="last"></div>
-        <div><label for="middle">Middle Name:</label><input type="text" name="middle"></div>
-        <div><label for="first">First Name</label><input type="text" name="first"></div>
-        <div><label for="ssn">Social Security Number</label><input type="text" name="ssn"></div>
-        <div><label for="dob">Date of Birth</label><input type="text" name="dob"></div>
-        <button type="submit">Submit</button>
+    <form action="" class="usa-form">
+        <fieldset class="usa-fieldset">
+            <legend class="usa-legend">Search for dual enrollments</legend>
+            <label class="usa-label" for="last">Last Name:</label>
+            <input class="usa-input" type="text" name="last">
+            <label class="usa-label" for="middle">Middle Name:</label>
+            <input class="usa-input" type="text" name="middle">
+            <label class="usa-label" for="first">First Name</label>
+            <input class="usa-input" type="text" name="first">
+            <label class="usa-label" for="ssn">Social Security Number</label>
+            <input class="usa-input" type="text" name="ssn">
+            <label class="usa-label" for="dob">Date of Birth</label>
+            <input class="usa-input" type="text" name="dob">
+            <input class="usa-button" type="submit" value="Submit" />
+        </fieldset>
     </form>
 </div>

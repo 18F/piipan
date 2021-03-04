@@ -9,3 +9,9 @@ MATCH_RESOURCE_GROUP=piipan-match
 
 # Resource group for metrics
 METRICS_RESOURCE_GROUP=piipan-metrics
+
+# Prefix for resource identifiers
+PREFIX=fns
+
+# Deployment environment for resource identifiers
+ENV=$(basename "${BASH_SOURCE%.*}")

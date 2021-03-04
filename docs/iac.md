@@ -22,11 +22,20 @@ To (re)create the Azure resources that `piipan` uses:
 ```
     az login
 ```
-5. Run `create-resources`, which deploys Azure Resource Manager (ARM) templates and runs associated scripts:
+5. Run `create-resources`, which deploys Azure Resource Manager (ARM) templates and runs associated scripts, specifying the [name of the deployment environment](#deployment-environments).
 ```
     cd iac
-    ./create-resources.bash
+    ./create-resources.bash tts/dev
 ```
+
+## Deployment environments
+
+Configuration for each enviroment is in `iac/env` in a corresponding, `source`-able bash script.
+
+| Name | Description |
+|---|---|
+| `tts/dev` | TTS-owned Azure commercial cloud, updated continuously within a sprint |
+
 
 ## Environment variables
 

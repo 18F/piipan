@@ -5,21 +5,13 @@
 # has signed in with the Azure CLI. Must be run from a trusted network.
 # See install-extensions.bash for prerequisite Azure CLI extensions.
 #
-# usage: create-resources.bash
+# azure-env is the name of the deployment environment (e.g., "tts/dev").
+# See iac/env for available environments.
+#
+# usage: create-resources.bash <azure-env>
 
 source $(dirname "$0")/../tools/common.bash || exit
 source $(dirname "$0")/iac-common.bash || exit
-
-# In some cases, when trying to create a Function App, you may receive an
-# error, as Azure has various rules/limitations on how different App Service
-# plans are permitted to co-exist in a single resource group. Details at:
-# https://github.com/Azure/Azure-Functions/wiki/Creating-Function-Apps-in-an-existing-Resource-Group
-# To avoid this issue, put Function Apps in a isolated resource group.
-FUNCTIONS_RESOURCE_GROUP=piipan-functions
-
-# Use seperate resource group for matching API resources to allow use of
-# incremental deployments
-MATCH_RESOURCE_GROUP=piipan-match
 
 # Name of Key Vault
 VAULT_NAME=secret-keeper
@@ -51,12 +43,12 @@ TENANT_ID=$(az account show --query homeTenantId -o tsv)
 #     the primary access key (aka `key1`) for state access. Improve by replacing
 #     with share access signatures (SAS URLs) via managed identities at runtime.
 blob_connection_string () {
-  group=$1
+  resource_group=$1
   name=$2
 
   az storage account show-connection-string \
     --key secondary \
-    --resource-group $group \
+    --resource-group $resource_group \
     --name $name \
     --query connectionString \
     -o tsv
@@ -65,11 +57,12 @@ blob_connection_string () {
 # From a managed identity name, generate the value for
 # AzureServicesAuthConnectionString
 az_connection_string () {
-  identity=$1
+  resource_group=$1
+  identity=$2
 
   client_id=$(\
     az identity show \
-      --resource-group $RESOURCE_GROUP \
+      --resource-group $resource_group \
       --name $identity \
       --query clientId \
       --output tsv)
@@ -264,17 +257,19 @@ enable_easy_auth () {
 }
 
 main () {
+  # Load agency/subscription/deployment-specific settings
+  azure_env=$1
+  source $(dirname "$0")/env/${azure_env}.bash
+
   # Any changes to the set of resource groups below should also
   # be made to create-service-principal.bash
   echo "Creating $RESOURCE_GROUP group"
   az group create --name $RESOURCE_GROUP -l $LOCATION --tags Project=$PROJECT_TAG
-  echo "Creating $FUNCTIONS_RESOURCE_GROUP group"
-  az group create --name $FUNCTIONS_RESOURCE_GROUP -l $LOCATION --tags Project=$PROJECT_TAG
   echo "Creating match APIs resource group"
   az group create --name $MATCH_RESOURCE_GROUP -l $LOCATION --tags Project=$PROJECT_TAG
 
   # Create a service principal for use by CI/CD pipeline.
-  ./create-service-principal.bash $SP_NAME_CICD none
+  ./create-service-principal.bash $azure_env $SP_NAME_CICD none
 
   # uniqueString is used pervasively in our ARM templates to create globally
   # identifiers from the resource group id, but it is not available in the CLI.
@@ -289,15 +284,6 @@ main () {
   # Many CLI commands use a URI to identify nested resources; pre-compute the URI's prefix
   # for our default resource group
   DEFAULT_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers
-
-  # And similarly for our dedicated Function resource group
-  FUNCTIONS_UNIQ_STR=`az deployment group create \
-    --resource-group $FUNCTIONS_RESOURCE_GROUP \
-    --template-file ./arm-templates/unique-string.json \
-    --query properties.outputs.uniqueString.value \
-    -o tsv`
-
-  FUNCTIONS_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${FUNCTIONS_RESOURCE_GROUP}/providers
 
   # Create a key vault which will store credentials for use in other templates
   az deployment group create \
@@ -423,11 +409,11 @@ main () {
     abbr=`echo "$abbr" | tr '[:upper:]' '[:lower:]'`
 
     # Per-state Function App
-    func_app=${abbr}func${FUNCTIONS_UNIQ_STR}
+    func_app=${abbr}func${DEFAULT_UNIQ_STR}
 
     # Storage account for the Function app for its own use;
     # matches name generated in function-storage.json
-    func_stor=${abbr}fstor${FUNCTIONS_UNIQ_STR}
+    func_stor=${abbr}fstor${DEFAULT_UNIQ_STR}
 
     # Managed identity to access database
     identity=${abbr}admin
@@ -454,7 +440,7 @@ main () {
     # the storage account used to upload data for better isolation.
     az deployment group create \
       --name "${abbr}-func-storage" \
-      --resource-group $FUNCTIONS_RESOURCE_GROUP \
+      --resource-group $RESOURCE_GROUP \
       --template-file ./arm-templates/function-storage.json \
       --parameters \
         stateAbbreviation=$abbr \
@@ -464,7 +450,7 @@ main () {
     # portal has oddities/limitations when using Linux -- lets just get it
     # working with Windows as underlying OS
     az functionapp create \
-      --resource-group $FUNCTIONS_RESOURCE_GROUP \
+      --resource-group $RESOURCE_GROUP \
       --consumption-plan-location $LOCATION \
       --tags Project=$PROJECT_TAG \
       --runtime dotnet \
@@ -475,23 +461,23 @@ main () {
 
     # XXX Assumes if any identity is set, it is the one we are specifying below
     exists=`az functionapp identity show \
-      --resource-group $FUNCTIONS_RESOURCE_GROUP \
+      --resource-group $RESOURCE_GROUP \
       --name $func_app`
 
     if [ -z "$exists" ]; then
       # Conditionally execute otherwise we will get an error if it is already
       # assigned this managed identity
       az functionapp identity assign \
-        --resource-group $FUNCTIONS_RESOURCE_GROUP \
+        --resource-group $RESOURCE_GROUP \
         --name $func_app \
         --identities ${DEFAULT_PROVIDERS}/Microsoft.ManagedIdentity/userAssignedIdentities/${identity}
     fi
 
     db_conn_str=`pg_connection_string $PG_SERVER_NAME $db_name $identity`
     blob_conn_str=`blob_connection_string $RESOURCE_GROUP $stor_name`
-    az_serv_str=`az_connection_string $identity`
+    az_serv_str=`az_connection_string $RESOURCE_GROUP $identity`
     az functionapp config appsettings set \
-      --resource-group $FUNCTIONS_RESOURCE_GROUP \
+      --resource-group $RESOURCE_GROUP \
       --name $func_app \
       --settings \
         $DB_CONN_STR_KEY="$db_conn_str" \
@@ -515,7 +501,7 @@ main () {
       --name $sub_name \
       --resource-group $RESOURCE_GROUP \
       --system-topic-name $topic_name \
-      --endpoint ${FUNCTIONS_PROVIDERS}/Microsoft.Web/sites/${func_app}/functions/${func_name} \
+      --endpoint ${DEFAULT_PROVIDERS}/Microsoft.Web/sites/${func_app}/functions/${func_name} \
       --endpoint-type azurefunction \
       --included-event-types Microsoft.Storage.BlobCreated \
       --subject-begins-with /blobServices/default/containers/upload/blobs/
@@ -551,7 +537,7 @@ main () {
         --query clientId \
         --output tsv)
     db_conn_str=`pg_connection_string $PG_SERVER_NAME $db_name $identity`
-    az_serv_str=`az_connection_string $identity`
+    az_serv_str=`az_connection_string $RESOURCE_GROUP $identity`
 
     echo "Deploying ${name} function resources"
     func_name=$(\
@@ -683,7 +669,7 @@ main () {
   assign_app_role $orch_app_sp $query_tool_identity $ORCH_API_APP_ROLE
 
   # Establish metrics sub-system
-  ./create-metrics-resources.bash
+  ./create-metrics-resources.bash $azure_env
 
   script_completed
 }

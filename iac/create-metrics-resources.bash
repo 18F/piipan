@@ -3,10 +3,13 @@
 # Provisions and configures the infrastructure components for all Piipan Metrics subsystems.
 # Assumes an Azure user with the Global Administrator role has signed in with the Azure CLI.
 # Assumes Piipan base resources have been created in the same environment
-# (for example, state-sepcific blob topics).
+# (for example, state-specific blob topics).
 # Must be run from a trusted network.
 #
-# usage: create-metrics-resources.bash
+# azure-env is the name of the deployment environment (e.g., "tts/dev").
+# See iac/env for available environments.
+#
+# usage: create-metrics-resources.bash <azure-env>
 
 source $(dirname "$0")/../tools/common.bash || exit
 source $(dirname "$0")/iac-common.bash || exit
@@ -24,9 +27,15 @@ VAULT_NAME_KEY=KeyVaultName
 VAULT_NAME=${PREFIX}kvmetrics${ENV}${LOCATION} # vault names can't use hyphens even though the docs say they can
 # Name of secret used to store the PostgreSQL metrics server admin password
 PG_SECRET_NAME=metrics-pg-admin
+# Base name of dashboard app
+DASHBOARD_APP_NAME=piipan-dashboard
 ### END CONSTANTS
 
 main () {
+  # Load agency/subscription/deployment-specific settings
+  azure_env=$1
+  source $(dirname "$0")/env/${azure_env}.bash
+
   # Create Metrics resource group
   # Eventually resource group will already be created for us by partner
   echo "Creating $METRICS_RESOURCE_GROUP group"
@@ -161,8 +170,12 @@ EOF
   popd
 
   # Subscribe each dynamically created event blob topic to this function
+<<<<<<< HEAD
   echo "set FUNCTIONS_PROVIDERS"
   FUNCTIONS_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${METRICS_RESOURCE_GROUP}/providers
+=======
+  METRICS_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${METRICS_RESOURCE_GROUP}/providers
+>>>>>>> main
   SUBS_RESOURCE_GROUP=piipan-resources
 
   while IFS=, read -r abbr name ; do
@@ -175,7 +188,11 @@ EOF
           --name $sub_name \
           --resource-group $SUBS_RESOURCE_GROUP \
           --system-topic-name $topic_name \
+<<<<<<< HEAD
           --endpoint ${FUNCTIONS_PROVIDERS}/Microsoft.Web/sites/${COLLECT_APP_NAME}/functions/${COLLECT_FUNC} \
+=======
+          --endpoint ${METRICS_PROVIDERS}/Microsoft.Web/sites/${FUNC_APP_NAME}/functions/${FUNC_NAME} \
+>>>>>>> main
           --endpoint-type azurefunction \
           --included-event-types Microsoft.Storage.BlobCreated \
           --subject-begins-with /blobServices/default/containers/upload/blobs/

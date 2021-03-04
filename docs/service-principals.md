@@ -11,10 +11,10 @@ Steps to create a service principal:
 ```
     az login
 ```
-2. Run `create-service-principal` and provide it with the name of the service principal to be created:
+2. Run `create-service-principal` and provide it with the [deployment environment](./iac.md#deployment-environments) and the name of the service principal to be created:
 ```
     cd iac
-    ./create-service-principal.bash <service_principal_name>
+    ./create-service-principal.bash <azure-env> <service-principal-name>
 ```
 
 The service principal will be created and credentials will be printed to `stdout`.
@@ -22,7 +22,7 @@ The service principal will be created and credentials will be printed to `stdout
 The script supports an optional second parameter that will be passed as the [`--output` format](https://docs.microsoft.com/en-us/cli/azure/format-output-azure-cli) used when creating the service principal. Passing `none` will suppress credentials from being printed out:
 
 ```
-    ./create-service-principal.bash <service_principal_name> none
+    ./create-service-principal.bash <azure-env> <service-principal-name> none
 ```
 
 ## Refreshing/rotating service principal credentials
@@ -33,5 +33,5 @@ To refresh/rotate credentials, simply follow the steps above — if `create-serv
 - Service principal credentials default to a duration of 1 year.
 - Service principals are granted access to individual components (e.g., resource groups, subscriptions, App Service applications, etc) that live within a single Azure tenant.
 - Use `az ad app list` to show a list of all service principals.
-- Use `az role assignment list --all --assignee http://<service_principal_name> --query "[].scope"` to show a list of all the resources to which a service principal has access.
+- Use `az role assignment list --all --assignee http://<service-principal-name> --query "[].scope"` to show a list of all the resources to which a service principal has access.
 - To view a list of all service principals in the Azure Portal UI, go to Portal > Azure Active Directory > App Registrations > All Applications.

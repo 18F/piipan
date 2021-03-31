@@ -20,10 +20,12 @@ namespace Piipan.Match.Orchestrator
     public class Api
     {
         private readonly IAuthorizedApiClient _apiClient;
+        private readonly ITableStorage<QueryEntity> _lookupStorage;
 
-        public Api(IAuthorizedApiClient apiClient)
+        public Api(IAuthorizedApiClient apiClient, ITableStorage<QueryEntity> lookupStorage)
         {
             _apiClient = apiClient;
+            _lookupStorage = lookupStorage;
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace Piipan.Match.Orchestrator
 
                 if (response.Matches.Count > 0)
                 {
-                    response.LookupId = LookupId.Generate(request.Query.ToJson());
+                    response.LookupId = await Lookup.Save(request.Query, _lookupStorage);
                 }
             }
             catch (Exception ex)

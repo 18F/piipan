@@ -1,4 +1,6 @@
+using System;
 using System.Net.Http;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Piipan.Shared.Authentication;
@@ -25,6 +27,18 @@ namespace Piipan.Match.Orchestrator
             builder.Services.AddSingleton<IAuthorizedApiClient>((s) =>
             {
                 return new AuthorizedJsonApiClient(new HttpClient(), tokenProvider);
+            });
+
+            builder.Services.AddSingleton<ITableStorage<QueryEntity>>((s) =>
+            {
+                const string LookupConnectionString = "LookupConnectionString";
+                const string LookupTableName = "LookupTableName";
+
+                var storageAccount = CloudStorageAccount.Parse(Environment.GetEnvironmentVariable(LookupConnectionString));
+                var tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
+                var table = tableClient.GetTableReference(Environment.GetEnvironmentVariable(LookupTableName));
+
+                return new LookupStorage(table);
             });
         }
     }

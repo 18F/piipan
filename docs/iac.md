@@ -60,6 +60,8 @@ The following environment variables are pre-configured by the Infrastructure-as-
 | `MetricsApiUri` | URI for the Metrics API endpoint. | Piipan.Dashboard |
 | `KeyVaultName` | Name of key vault resource needed to acquire a secret | Piipan.Metrics.Api, Piipan.Metrics.Collect |
 | `CloudName` | Name of the active Azure cloud environment, either `AzureCloud` or `AzureUSGovernment` | Piipan.Etl, Piipan.Match.State, Piipan.Metrics.Api, Piipan.Metrics.Collect |
+| `LookupConnectionString` | Azure Storage Account connection string for accessing Table Storage service used for storing lookup IDs. | Piipan.Match.Orchestrator |
+| `LookupTableName` | Name of the Table Storage table where lookup IDs are stored.  | Piipan.Match.Orchestrator |
 
 
 ## `SysType` resource tag

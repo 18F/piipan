@@ -1,9 +1,34 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Piipan.Match.Orchestrator
 {
+    static class Lookup
+    {
+        const string PartitionKey = "lookup";
+
+        /// <summary>
+        /// Generate a `lookup_id` based on the provided MatchQuery and save to storage
+        /// using the provided ITableStorage instance.
+        /// </summary>
+        /// <returns>Unique `lookup_id` string for saved query</returns>
+        /// <param name="query">MatchQuery instance for saving</param>
+        /// <param name="tableStorage">handle to the table storage instance</param>
+        public static async Task<string> Save(MatchQuery query, ITableStorage<QueryEntity> tableStorage)
+        {
+            var json = query.ToJson();
+            var incoming = new QueryEntity(PartitionKey, LookupId.Generate(json));
+            incoming.Body = json;
+
+            // Throws `StorageException` upon lookup_id collision
+            var stored = await tableStorage.RetrieveOrInsertAsync(incoming);
+
+            return stored.RowKey;
+        }
+    }
+
     static class LookupId
     {
         private const string Chars = "23456789BCDFGHJKLMNPQRSTVWXYZ";

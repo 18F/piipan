@@ -2,7 +2,7 @@
 
 <h1 id="duplicate-participation-api">Duplicate Participation API v1.0.0</h1>
 
-> Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
+> Scroll down for code samples, example requests, and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
 
 The API for the Duplicate Participation system where bulk upload, matching, and lookups will occur
 
@@ -36,7 +36,7 @@ curl -X POST /v1/query \
 
 *Search for all matching PII records*
 
-Queries all state databases for any PII records that are an exact match to the full name, date of birth, and social security number in the request body's `query` property.
+Queries all state databases for any PII records that are an exact match to the full name, date of birth, and Social Security number in the request body's `query` property.
 
 > Body parameter
 
@@ -87,8 +87,8 @@ Status Code **200**
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|» lookup_id|string¦null|false|none|the identifier of the match request|
-|» matches|[object]|false|none|none|
+|» lookup_id|string¦null|false|none|Identifier of the match request|
+|» matches|[object]|false|none|None|
 |»» first|string|false|none|First name|
 |»» middle|string|false|none|Middle name|
 |»» last|string|true|none|Last name|
@@ -121,7 +121,7 @@ curl -X GET /v1/lookup_ids/{id} \
 
 `GET /lookup_ids/{id}`
 
-*get the original match data related to a Lookup ID*
+*Get the original match data related to a Lookup ID*
 
 User can provide a Lookup ID and receive the match data associated with it
 
@@ -145,7 +145,7 @@ User can provide a Lookup ID and receive the match data associated with it
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|original active match data|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Original active match data|Inline|
 |400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|Bad request|None|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|Not Found|None|
 

@@ -31,7 +31,7 @@ Seperate endpoints and credentials will be provided for each environment.
 | Environment | Purpose |
 |---|---|
 | Sandbox | For initial testing of the integration; fake data only |
-| Pre-Production | For testing with actual data at scale; data is not used in production |
+| Staging | For testing with actual data at scale; data is not used in production |
 | Production | Actual data used in the production system |
 
 ### Endpoints Overview

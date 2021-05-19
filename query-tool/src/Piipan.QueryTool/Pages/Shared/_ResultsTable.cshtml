@@ -10,6 +10,8 @@
             <th scope="col">DOB</th>
             <th scope="col">SSN</th>
             <th scope="col">State</th>
+            <th scope="col">Case Id</th>
+            <th scope="col">Participant Id</th>
         </tr>
     </thead>
     <tbody>
@@ -20,6 +22,8 @@
                     <td>@Html.DisplayFor(m => record.DateOfBirth)</td>
                     <td>@record.SocialSecurityNum</td>
                     <td>@record.StateName</td>
+                    <td>@record.CaseId</td>
+                    <td>@record.ParticipantId</td>
                 </tr>
             }
         </tbody>

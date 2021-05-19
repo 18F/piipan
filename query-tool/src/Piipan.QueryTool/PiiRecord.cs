@@ -48,6 +48,14 @@ namespace Piipan.QueryTool
         [JsonPropertyName("state_abbr")]
         public string StateAbbr { get; set; }
 
+        [Display(Name = "CaseId")]
+        [JsonPropertyName("case_id")]
+        public string CaseId { get; set; }
+
+        [Display(Name = "ParticipantId")]
+        [JsonPropertyName("participant_id")]
+        public string ParticipantId { get; set; }
+
         [Display(Name = "Lookup ID")]
         [JsonPropertyName("lookup_id")]
         public string LookupId { get; set; }

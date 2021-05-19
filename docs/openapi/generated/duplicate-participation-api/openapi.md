@@ -68,7 +68,9 @@ Queries all state databases for any PII records that are an exact match to the l
       "dob": "2019-08-24",
       "state_name": "string",
       "state_abbr": "string",
-      "exception": "string"
+      "exception": "string",
+      "case_id": "string",
+      "participant_id": "string"
     }
   ]
 }
@@ -97,6 +99,8 @@ Status Code **200**
 |»» state_name|string|false|none|Full state/territory name|
 |»» state_abbr|string|false|none|State/territory two-letter postal abbreviation|
 |»» exception|string|false|none|Placeholder for value indicating special processing instructions|
+|»» case_id|string|false|none|Participant's state-specific case identifier|
+|»» participant_id|string|false|none|Participant's state-specific identifier. Must not be social security number or any personal identifiable information.|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:

@@ -94,6 +94,12 @@ paths:
                         exception:
                           type: string
                           description: Placeholder for value indicating special processing instructions
+                        case_id:
+                          type: string
+                          description: Participant's state-specific case identifier
+                        participant_id:
+                          type: string
+                          description: Participant's state-specific identifier. Must not be social security number or any personal identifiable information.
         '400':
           description: Bad request. Missing one of the required properties in the request body.
   '/lookup_ids/{id}':

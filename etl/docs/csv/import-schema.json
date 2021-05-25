@@ -64,6 +64,12 @@
         "type": "yearmonth",
         "format": "%m/%Y",
         "description": "month and year when participant's benefits end"
+      },
+      {
+        "name": "recent benefit months",
+        "type": "string",
+        "format": "%m/%Y,%m/%Y,%m/%Y",
+        "description": "List of the last 3 months that participant received benefits, formatted as yearmonths separated by commas in a single column. Does not include current benefit month. Months do not need to be consecutive."
       }
     ]
   }

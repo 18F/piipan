@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS participants(
 	upload_id integer REFERENCES uploads (id),
   	case_id text NOT NULL,
   	participant_id text,
-	benefits_end_date date
+	benefits_end_date date,
+    	recent_benefit_months date[]
 );
 
 COMMENT ON TABLE participants IS 'Program participant Personally Identifiable Information (PII)';
@@ -42,6 +43,7 @@ COMMENT ON COLUMN participants.exception IS 'Placeholder for value indicating sp
 COMMENT ON COLUMN participants.case_id IS 'Participant''s state-specific case identifier';
 COMMENT ON COLUMN participants.participant_id IS 'Participant''s state-specific identifier';
 COMMENT ON COLUMN participants.benefits_end_date IS 'Participant''s ending benefits date';
+COMMENT ON COLUMN participants.recent_benefit_months IS 'Participant''s recent benefit months';
 
 CREATE INDEX IF NOT EXISTS participants_ssn_idx ON participants (ssn, upload_id);
 

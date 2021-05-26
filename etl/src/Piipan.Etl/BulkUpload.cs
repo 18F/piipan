@@ -157,8 +157,8 @@ namespace Piipan.Etl
                     using (var cmd = factory.CreateCommand())
                     {
                         cmd.Connection = conn;
-                        cmd.CommandText = "INSERT INTO participants (last, first, middle, dob, ssn, exception, upload_id, case_id, participant_id, benefits_end_date) " +
-                            "VALUES (@last, @first, @middle, @dob, @ssn, @exception, @upload_id, @case_id, @participant_id, @benefits_end_date)";
+                        cmd.CommandText = "INSERT INTO participants (last, first, middle, dob, ssn, exception, upload_id, case_id, participant_id, benefits_end_date, recent_benefit_months) " +
+                            "VALUES (@last, @first, @middle, @dob, @ssn, @exception, @upload_id, @case_id, @participant_id, @benefits_end_date, @recent_benefit_months::date[])";
 
                         AddWithValue(cmd, DbType.String, "last", record.Last);
                         AddWithValue(cmd, DbType.String, "first", (object)record.First ?? DBNull.Value);
@@ -170,6 +170,7 @@ namespace Piipan.Etl
                         AddWithValue(cmd, DbType.String, "case_id", record.CaseId);
                         AddWithValue(cmd, DbType.String, "participant_id", (object)record.ParticipantId ?? DBNull.Value);
                         AddWithValue(cmd, DbType.DateTime, "benefits_end_date", (object)record.BenefitsEndDate ?? DBNull.Value);
+                        AddWithValue(cmd, DbType.Object, "recent_benefit_months", (object)FormatDatesAsPgArray(record.RecentBenefitMonths) ?? DBNull.Value);
 
                         cmd.ExecuteNonQuery();
                     }
@@ -186,6 +187,23 @@ namespace Piipan.Etl
             p.ParameterName = name;
             p.Value = value;
             cmd.Parameters.Add(p);
+        }
+
+        public static string FormatDatesAsPgArray(string input) {
+            if (String.IsNullOrEmpty(input)) return "{}";
+            string formatted = "";
+            string[] datestrings = input.Split(' ');
+            List<string> formattedDateStrings = new List<string>();
+            formatted += "{";
+            foreach (var datestring in datestrings)
+            {
+              if (String.IsNullOrEmpty(datestring)) continue;
+              DateTime date = Convert.ToDateTime(datestring);
+              formattedDateStrings.Add(date.ToString("yyyy-MM-dd"));
+            }
+            formatted += string.Join(",", formattedDateStrings);
+            formatted += "}";
+            return formatted;
         }
     }
 }

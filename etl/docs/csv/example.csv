@@ -1,5 +1,6 @@
 ﻿last,first,middle,dob,ssn,exception,case id,participant id, benefits end month, recent benefit months
-Farrington,Theodore,Carri,10/13/1931,000-12-3456,ReasonXYZ,caseid1,,2021-05, 2021-04 2021-03 2021-02
+Farrington,Theodore,Carri,10/13/1931,000-12-3456,ReasonXYZ,caseid1,,2021-05,2021-04 2021-03 2021-02
+
 Lynn,Wesley,Eura,8/01/1940,000-12-3457,,caseid2,,,
 Cullen,S,,1/1/2015,000-12-3458,,caseid3,,,
 Alger,Megan,Kamala,1/25/2020,000-12-3459,,caseid4,,,

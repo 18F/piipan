@@ -47,7 +47,7 @@ namespace Piipan.Etl
             Map(m => m.BenefitsEndDate).Name("benefits end month")
                 .TypeConverterOption.NullValues(string.Empty);
 
-            Map(m => m.RecentBenefitMonths).Name("recent benefit months")
+            Map(m => m.RecentBenefitMonths).Name("recent_benefit_months")
                 .Validate(field => {
                   if (String.IsNullOrEmpty(field.Field)) return true;
 

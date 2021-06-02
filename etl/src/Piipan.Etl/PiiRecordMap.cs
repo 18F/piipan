@@ -16,8 +16,10 @@ namespace Piipan.Etl
                 return !string.IsNullOrEmpty(field.Field);
             });
 
-            Map(m => m.First).Name("first")
-                .TypeConverterOption.NullValues(string.Empty);
+            Map(m => m.First).Name("first").Validate(field =>
+            {
+                return !string.IsNullOrEmpty(field.Field);
+            });
 
             Map(m => m.Middle).Name("middle")
                 .TypeConverterOption.NullValues(string.Empty);

@@ -21,7 +21,7 @@ COMMENT ON COLUMN uploads.publisher IS 'User or service account that performed t
 CREATE TABLE IF NOT EXISTS participants(
 	id serial PRIMARY KEY,
 	last text NOT NULL,
-	first text,
+	first text NOT NULL,
 	middle text,
 	dob date NOT NULL,
 	ssn text NOT NULL,

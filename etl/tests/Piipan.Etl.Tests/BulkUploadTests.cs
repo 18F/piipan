@@ -62,7 +62,7 @@ namespace Piipan.Etl.Tests
             return new PiiRecord
             {
                 Last = "Last",
-                First = null,
+                First = "First",
                 Middle = null,
                 Dob = new DateTime(1970, 1, 1),
                 Ssn = "000-00-0000",
@@ -121,13 +121,12 @@ namespace Piipan.Etl.Tests
         {
             var logger = Mock.Of<ILogger>();
             var stream = CsvFixture(new string[] {
-                "Last,,,01/01/1970,000-00-0000,,CaseId,,,"
+                "Last,First,,01/01/1970,000-00-0000,,CaseId,,,"
             });
 
             var records = BulkUpload.Read(stream, logger);
             foreach (var record in records)
             {
-                Assert.Null(record.First);
                 Assert.Null(record.Middle);
                 Assert.Null(record.Exception);
                 Assert.Null(record.ParticipantId);
@@ -136,10 +135,11 @@ namespace Piipan.Etl.Tests
         }
 
         [Theory]
-        [InlineData(",,,01/01/1970,000-00-0000,")] // Missing last name
-        [InlineData("Last,,,01/01/1970,,")] // Missing SSN
-        [InlineData("Last,,,01/01/1970,000000000,")] // Malformed SSN
-        [InlineData("Last,,,01/01/1970,000-00-0000,,,")] // Missing CaseId
+        [InlineData(",First,,01/01/1970,000-00-0000,")] // Missing last name
+        [InlineData("Last,,,01/01/1970,000-00-0000,")] // Missing first name
+        [InlineData("Last,First,,01/01/1970,,")] // Missing SSN
+        [InlineData("Last,First,,01/01/1970,000000000,")] // Malformed SSN
+        [InlineData("Last,First,,01/01/1970,000-00-0000,,,")] // Missing CaseId
         public void ExpectFieldValidationError(String inline)
         {
             var logger = Mock.Of<ILogger>();
@@ -156,8 +156,8 @@ namespace Piipan.Etl.Tests
         }
 
         [Theory]
-        [InlineData("Last,,,,000-00-0000,")] // Missing DOB
-        [InlineData("Last,,,02/31/1970,000-00-0000,")] // Invalid DOB
+        [InlineData("Last,First,,,000-00-0000,")] // Missing DOB
+        [InlineData("Last,First,,02/31/1970,000-00-0000,")] // Invalid DOB
         public void ExpectReadErrror(String inline)
         {
             var logger = Mock.Of<ILogger>();

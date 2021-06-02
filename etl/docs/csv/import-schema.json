@@ -12,7 +12,11 @@
       {
         "name": "first",
         "type": "string",
-        "description": "Participant's first name"
+        "description": "Participant's first name",
+        "constraints": {
+            "required": true,
+            "minLength": 1
+        }
       },
       {
         "name": "middle",
@@ -65,4 +69,4 @@
         "description": "month and year when participant's benefits end"
       }
     ]
-  }
+}

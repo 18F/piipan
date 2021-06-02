@@ -16,7 +16,7 @@ namespace Piipan.Etl
     {
 
         public string Last { get; set; } = null!;
-        public string? First { get; set; }
+        public string First { get; set; } = null!;
         public string? Middle { get; set; }
         public DateTime Dob { get; set; }
         public string Ssn { get; set; } = null!;

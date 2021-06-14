@@ -59,5 +59,27 @@ namespace Piipan.QueryTool
         [Display(Name = "Benefits End Month")]
         [JsonPropertyName("benefits_end_month")]
         public string BenefitsEndMonth { get; set; }
+
+        [Display(Name = "Recent Benefit Months")]
+        [JsonPropertyName("recent_benefit_months")]
+        public string[] RecentBenefitMonths { get; set; } = new string[0];
+
+        public string RecentBenefitMonthsDisplay
+        {
+            get { return String.Join(", ", this.RecentBenefitMonths); }
+        }
+
+        [Display(Name = "Protect Location")]
+        [JsonPropertyName("protect_location")]
+        public bool? ProtectLocation { get; set; }
+
+        public string ProtectLocationDisplay
+        {
+            get
+            {
+                if (this.ProtectLocation == null) return "Yes";
+                return (bool)this.ProtectLocation ? "Yes" : "No";
+            }
+        }
     }
 }

@@ -112,6 +112,7 @@ Result:
   type: object
   required:
     - index
+    - matches
   properties:
     index:
       type: integer

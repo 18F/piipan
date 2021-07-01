@@ -333,7 +333,7 @@ Status Code **200**
 |»» results|array|true|none|Array of query results. For every person provided in the request, a result is returned for every successful query, even if no matches are found. If a query fails, the failure data will be in the errors array.|
 |»»» index|integer|true|none|The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request.|
 |»»» lookup_id|string¦null|false|none|The identifier of the person data, if a match is present. This ID can be used for looking up the PII of the person provided in the original request.|
-|»»» matches|[object]|false|none|none|
+|»»» matches|[object]|true|none|none|
 |»»»» first|string|false|none|First name|
 |»»»» middle|string|false|none|Middle name|
 |»»»» last|string|true|none|Last name|

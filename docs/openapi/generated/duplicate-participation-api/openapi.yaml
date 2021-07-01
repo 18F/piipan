@@ -112,6 +112,7 @@ paths:
                         description: 'Array of query results. For every person provided in the request, a result is returned for every successful query, even if no matches are found. If a query fails, the failure data will be in the errors array.'
                         required:
                           - index
+                          - matches
                         properties:
                           index:
                             type: integer

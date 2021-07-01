@@ -5,7 +5,7 @@ LookupIdResponse:
     - data
   properties:
     data:
-      $ref: 'match-query.yaml#/MatchQueryRequestItem'
+      $ref: 'match-query.yaml#/Person'
 
 LookupIdResponseExamples:
   All:

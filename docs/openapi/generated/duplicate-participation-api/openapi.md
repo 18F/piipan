@@ -68,9 +68,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 1
-  },
   "data": {
     "results": [
       {
@@ -108,9 +105,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 1
-  },
   "data": {
     "results": [
       {
@@ -128,9 +122,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 1
-  },
   "data": {
     "results": [
       {
@@ -182,9 +173,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 2
-  },
   "data": {
     "results": [
       {
@@ -237,9 +225,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 2
-  },
   "data": {
     "results": [
       {
@@ -277,9 +262,6 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "meta": {
-    "total": 2
-  },
   "data": {
     "results": [
       {
@@ -327,8 +309,6 @@ Status Code **200**
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|» meta|object¦null|false|none|Provides meta information about the response. A meta property will be present whenever a data property is present.|
-|»» total|integer|true|none|The sum total of results plus errors in the data object. This should equal the number of persons provided in the request.|
 |» data|object¦null|false|none|The response payload. Either an errors or data property will be present in the response, but not both.|
 |»» results|array|true|none|Array of query results. For every person provided in the request, a result is returned for every successful query, even if no matches are found. If a query fails, the failure data will be in the errors array.|
 |»»» index|integer|true|none|The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request.|

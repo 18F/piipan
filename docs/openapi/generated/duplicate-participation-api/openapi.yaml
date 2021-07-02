@@ -89,16 +89,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  meta:
-                    type: object
-                    nullable: true
-                    description: Provides meta information about the response. A meta property will be present whenever a data property is present.
-                    required:
-                      - total
-                    properties:
-                      total:
-                        type: integer
-                        description: The sum total of results plus errors in the data object. This should equal the number of persons provided in the request.
                   data:
                     type: object
                     nullable: true
@@ -217,8 +207,6 @@ paths:
                 Single:
                   description: A query for a single person returning a single match
                   value:
-                    meta:
-                      total: 1
                     data:
                       results:
                         - index: 0
@@ -244,8 +232,6 @@ paths:
                 None:
                   description: A query for a single person returning no matches
                   value:
-                    meta:
-                      total: 1
                     data:
                       results:
                         - index: 0
@@ -255,8 +241,6 @@ paths:
                 Multiple:
                   description: A query for one person returning multiple matches
                   value:
-                    meta:
-                      total: 1
                     data:
                       results:
                         - index: 0
@@ -294,8 +278,6 @@ paths:
                 MultipleRecords:
                   description: A query for two persons returning one match for each person
                   value:
-                    meta:
-                      total: 2
                     data:
                       results:
                         - index: 0
@@ -310,8 +292,6 @@ paths:
                 MultipleRecordsOneMatch:
                   description: A query for two persons returning no matches for one person and a match for the other
                   value:
-                    meta:
-                      total: 2
                     data:
                       results:
                         - index: 0
@@ -325,8 +305,6 @@ paths:
                 MultipleRecordsOneError:
                   description: A query for two persons returning a successful result for one person and an error for the other person
                   value:
-                    meta:
-                      total: 2
                     data:
                       results:
                         - index: 1

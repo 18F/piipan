@@ -1,4 +1,4 @@
-# 1. Use a subset of the JSON API Specification for all API responses
+# 16. Use a subset of the JSON API Specification for all API responses
 
 Date: 2021-06-29
 

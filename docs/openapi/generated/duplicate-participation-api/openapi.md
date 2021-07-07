@@ -288,11 +288,27 @@ Queries all state databases for any PII records that are an exact match to the l
     "errors": [
       {
         "index": 0,
-        "code": "InternalServerException",
-        "message": "Unexpected Server Error. Please try again."
+        "code": "XYZ",
+        "title": "Internal Server Exception",
+        "detail": "Unexpected Server Error. Please try again."
       }
     ]
   }
+}
+```
+
+> An example response for an invalid request
+
+```json
+{
+  "errors": [
+    {
+      "status": "400",
+      "code": "XYZ",
+      "title": "Bad Request",
+      "detail": "Request payload exceeds maxiumum count"
+    }
+  ]
 }
 ```
 
@@ -329,11 +345,14 @@ Status Code **200**
 |»»»» protect_location|boolean¦null|false|none|Location protection flag for vulnerable individuals. True values indicate that the individual’s location must be protected from disclosure to avoid harm to the individual. Apply the same protections to true and null values.|
 |»» errors|array|true|none|Array of error objects corresponding to a person in the request. If a query for a single person fails, the failure data will display here.|
 |»»» index|integer|true|none|The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request.|
-|»»» code|string|true|none|The error code|
-|»»» message|string|true|none|The error message|
+|»»» code|string|false|none|The application-specific error code|
+|»»» title|string|false|none|The short, human-readable summary of the error, consistent across all occurrences of the error|
+|»»» detail|string|false|none|The human-readable explanation specific to this occurrence of the error|
 |» errors|array¦null|false|none|Holds HTTP and other top-level errors. Either an errors or data property will be present in the response, but not both.|
-|»» code|string|true|none|The error code|
-|»» message|string|true|none|The error message|
+|»» status|string|true|none|The HTTP status code|
+|»» code|string|false|none|The application-specific error code|
+|»» title|string|false|none|The short, human-readable summary of the error, consistent across all occurrences of the error|
+|»» detail|string|false|none|The human-readable explanation specific to this occurrence of the error|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:

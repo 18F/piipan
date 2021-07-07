@@ -48,14 +48,14 @@ main () {
   az storage account create \
     --name "$COLLECT_STORAGE_NAME" \
     --location "$LOCATION" \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --sku Standard_LRS \
     --tags Project=$PROJECT_TAG
 
   # Create the function app in Azure
   echo "Creating function app $METRICS_COLLECT_APP_NAME in Azure"
   az functionapp create \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --plan "$APP_SERVICE_PLAN_FUNC_NAME" \
     --runtime dotnet \
     --functions-version 3 \
@@ -68,7 +68,7 @@ main () {
   echo "Integrating $METRICS_COLLECT_APP_NAME into virtual network"
   az functionapp vnet-integration add \
     --name "$METRICS_COLLECT_APP_NAME" \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --subnet "$FUNC_SUBNET_NAME" \
     --vnet "$VNET_NAME"
 
@@ -77,13 +77,13 @@ main () {
   exists=$(\
     az functionapp config access-restriction show \
       -n "$METRICS_COLLECT_APP_NAME" \
-      -g "$METRICS_RESOURCE_GROUP" \
+      -g "$RESOURCE_GROUP" \
       --query "ipSecurityRestrictions[?ip_address == 'AzureEventGrid'].ip_address" \
       -o tsv)
   if [ -z "$exists" ]; then
     az functionapp config access-restriction add \
       -n "$METRICS_COLLECT_APP_NAME" \
-      -g "$METRICS_RESOURCE_GROUP" \
+      -g "$RESOURCE_GROUP" \
       --priority 100 \
       --service-tag AzureEventGrid
   fi
@@ -92,7 +92,7 @@ main () {
   metrics_collect_function_id=$(\
     az functionapp show \
       -n "$METRICS_COLLECT_APP_NAME" \
-      -g "$METRICS_RESOURCE_GROUP" \
+      -g "$RESOURCE_GROUP" \
       -o tsv \
       --query id)
   hub_rule_id=$(\
@@ -124,7 +124,7 @@ main () {
   echo "configure settings"
   db_conn_str=$(pg_connection_string "$DB_SERVER_NAME" "$DB_NAME" "${METRICS_COLLECT_APP_NAME//-/_}")
   az functionapp config appsettings set \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --name "$METRICS_COLLECT_APP_NAME" \
     --settings \
       $DB_CONN_STR_KEY="$db_conn_str" \
@@ -138,7 +138,7 @@ main () {
   popd
 
   # Subscribe each dynamically created event blob topic to this function
-  METRICS_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${METRICS_RESOURCE_GROUP}/providers
+  METRICS_PROVIDERS=/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers
   SUBS_RESOURCE_GROUP=$RESOURCE_GROUP
 
   while IFS=, read -r abbr name ; do
@@ -165,14 +165,14 @@ main () {
   az storage account create \
     --name "$API_APP_STORAGE_NAME" \
     --location "$LOCATION" \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --sku Standard_LRS \
     --tags Project=$PROJECT_TAG
 
   # Create the function app in Azure
   echo "Creating function app $METRICS_API_APP_NAME"
   az functionapp create \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --plan "$APP_SERVICE_PLAN_FUNC_NAME" \
     --runtime dotnet \
     --functions-version 3 \
@@ -185,13 +185,13 @@ main () {
   echo "Integrating $METRICS_API_APP_NAME into virtual network"
   az functionapp vnet-integration add \
     --name "$METRICS_API_APP_NAME" \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --subnet "$FUNC_SUBNET_NAME" \
     --vnet "$VNET_NAME"
 
   db_conn_str=$(pg_connection_string "$DB_SERVER_NAME" "$DB_NAME" "${METRICS_API_APP_NAME//-/_}")
   az functionapp config appsettings set \
-      --resource-group "$METRICS_RESOURCE_GROUP" \
+      --resource-group "$RESOURCE_GROUP" \
       --name "$METRICS_API_APP_NAME" \
       --settings \
         $DB_CONN_STR_KEY="$db_conn_str" \
@@ -202,7 +202,7 @@ main () {
   metrics_api_function_id=$(\
     az functionapp show \
       -n "$METRICS_API_APP_NAME" \
-      -g "$METRICS_RESOURCE_GROUP" \
+      -g "$RESOURCE_GROUP" \
       -o tsv \
       --query id)
   hub_rule_id=$(\
@@ -255,7 +255,7 @@ main () {
 
   metrics_api_uri=$(\
     az functionapp function show \
-      -g "$METRICS_RESOURCE_GROUP" \
+      -g "$RESOURCE_GROUP" \
       -n "$METRICS_API_APP_NAME" \
       --function-name $METRICS_API_FUNCTION_NAME \
       --query invokeUrlTemplate \
@@ -274,8 +274,10 @@ main () {
       servicePlan="$APP_SERVICE_PLAN" \
       metricsApiUri="$metrics_api_uri" \
       eventHubName="$EVENT_HUB_NAME" \
-      idpOidcConfigUri="$IDP_OIDC_CONFIG_URI" \
+      idpOidcConfigUri="$DASHBOARD_APP_IDP_OIDC_CONFIG_URI" \
       idpClientId="$DASHBOARD_APP_IDP_CLIENT_ID"
+
+  ./configure-oidc.bash "$azure_env" "$DASHBOARD_APP_NAME"
 
   script_completed
 }

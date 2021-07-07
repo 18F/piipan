@@ -34,7 +34,7 @@ main () {
   output=${3:-json}
 
   # Array of groups to which the service principal will be scoped
-  RESOURCE_GROUPS=("$RESOURCE_GROUP" "$METRICS_RESOURCE_GROUP" "$MATCH_RESOURCE_GROUP")
+  RESOURCE_GROUPS=("$RESOURCE_GROUP" "$MATCH_RESOURCE_GROUP")
 
   # Create space-separated list of resource group IDs
   for g in "${RESOURCE_GROUPS[@]}"

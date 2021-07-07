@@ -62,12 +62,6 @@ The following environment variables are pre-configured by the Infrastructure-as-
 | `LookupConnectionString` | Azure Storage Account connection string for accessing Table Storage service used for storing lookup IDs. | Piipan.Match.Orchestrator |
 | `LookupTableName` | Name of the Table Storage table where lookup IDs are stored.  | Piipan.Match.Orchestrator |
 
-#### Manually configured
-The following environment variables are not configured by the Infrastructure-as-Code scripts, and thus need to be manually configured after each run.
-| Name | Value | Used by |
-|---|---|---|
-| `IDP_CLIENT_SECRET` | Client Secret for OIDC identity provider. | Piipan.Dashboard, Piipan.QueryTool |
-
 
 ## `SysType` resource tag
 
@@ -98,3 +92,4 @@ az resource list  --tag SysType=PerStateMatchApi --query "[? resourceGroup == 'r
 - Some Azure CLI provisioning commands will return before all of their behind-the-scenes operations complete in the Azure environment. Very occasionally, subsequent provisioning commands in `create-resources` will fail as it won't be able to locate services it expects to be present; e.g., `Can't find app with name` when publishing a Function to a Function App. As a workaround, re-run the script.
 - .NET 5 with Azure Functions v3 is [not (yet) supported by Microsoft](https://github.com/Azure/azure-functions-host/issues/6674).
 - `iac/.azure` contains local Azure CLI configuration that is used by `create-resources`
+- In order for IaC to automatically configure the OIDC client secrets for the Dashboard and Query Tool applications, the secrets need to be present in a key vault with a particular naming format. See `configure-oidc.bash` for details.

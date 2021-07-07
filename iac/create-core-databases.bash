@@ -8,8 +8,7 @@ set_constants () {
   DB_ADMIN_NAME=piipanadmin
   SUPERUSER=$DB_ADMIN_NAME
 
-  DB_NAME=metrics
-  DB_TABLE_NAME=participant_uploads
+  METRICS_DB_NAME=metrics
 
   VAULT_NAME=$PREFIX-kv-core-$ENV
   PG_SECRET_NAME=core-pg-admin
@@ -203,11 +202,11 @@ main () {
   config_db "$TEMPLATE_DB"
 
   # Create and configure metrics DB
-  init_db $DB_NAME
+  init_db $METRICS_DB_NAME
 
-  echo "Create db table"
-  psql "${PSQL_OPTS[@]}" -d $DB_NAME -f - <<EOF
-      CREATE TABLE IF NOT EXISTS $DB_TABLE_NAME (
+  echo "Create $METRICS_DB_NAME table"
+  psql "${PSQL_OPTS[@]}" -d $METRICS_DB_NAME -f - <<EOF
+      CREATE TABLE IF NOT EXISTS participant_uploads(
           id serial PRIMARY KEY,
           state VARCHAR(50) NOT NULL,
           uploaded_at timestamp NOT NULL
@@ -246,14 +245,14 @@ EOF
   export PGUSER=${PG_AAD_ADMIN}@$DB_SERVER_NAME
 
   echo "Configuring database access for $METRICS_API_APP_NAME"
-  create_managed_role "$DB_NAME" "$METRICS_API_APP_NAME"
-  config_managed_role "$DB_NAME" "$METRICS_API_APP_NAME"
-  grant_read_access "$DB_NAME" "$METRICS_API_APP_NAME"
+  create_managed_role "$METRICS_DB_NAME" "$METRICS_API_APP_NAME"
+  config_managed_role "$METRICS_DB_NAME" "$METRICS_API_APP_NAME"
+  grant_read_access "$METRICS_DB_NAME" "$METRICS_API_APP_NAME"
 
   echo "Configuring database access for $METRICS_COLLECT_APP_NAME"
-  create_managed_role "$DB_NAME" "$METRICS_COLLECT_APP_NAME"
-  config_managed_role "$DB_NAME" "$METRICS_COLLECT_APP_NAME"
-  grant_read_write_access "$DB_NAME" "$METRICS_COLLECT_APP_NAME"
+  create_managed_role "$METRICS_DB_NAME" "$METRICS_COLLECT_APP_NAME"
+  config_managed_role "$METRICS_DB_NAME" "$METRICS_COLLECT_APP_NAME"
+  grant_read_write_access "$METRICS_DB_NAME" "$METRICS_COLLECT_APP_NAME"
 
   if [ "$exists" = "true" ]; then
     echo "Leaving $CURRENT_USER_OBJID as a member of $PG_AAD_ADMIN"

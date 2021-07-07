@@ -24,9 +24,6 @@ main () {
   az group create --name "$RESOURCE_GROUP" -l "$LOCATION" --tags Project="$PROJECT_TAG"
   echo "Creating match APIs resource group"
   az group create --name "$MATCH_RESOURCE_GROUP" -l "$LOCATION" --tags Project="$PROJECT_TAG"
-  # Create Metrics resource group
-  echo "Creating $METRICS_RESOURCE_GROUP group"
-  az group create --name "$METRICS_RESOURCE_GROUP" -l "$LOCATION" --tags Project="$PROJECT_TAG"
 
   script_completed
 }

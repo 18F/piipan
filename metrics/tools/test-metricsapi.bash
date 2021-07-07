@@ -23,7 +23,7 @@ main () {
   # grab url for metrics api
   function_uri=$(az functionapp function show \
     --name "$METRICS_API_APP_NAME" \
-    --resource-group "$METRICS_RESOURCE_GROUP" \
+    --resource-group "$RESOURCE_GROUP" \
     --function-name $METRICS_API_FUNCTION_NAME \
     --query invokeUrlTemplate \
     --output tsv)

@@ -36,7 +36,6 @@ main () {
 
     purge "$RESOURCE_GROUP"
     purge "$MATCH_RESOURCE_GROUP"
-    purge "$METRICS_RESOURCE_GROUP"
 
   else
     exit 1

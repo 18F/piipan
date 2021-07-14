@@ -45,7 +45,7 @@ MatchRequestExamples:
   "All fields":
     description: "An example request to query a single person, with values for all fields"
     value:
-      persons:
+      data:
         - first: "string"
           middle: "string"
           last: "string"
@@ -54,7 +54,7 @@ MatchRequestExamples:
   "Only requried fields":
     description: "A request to query a single person with values only for required fields"
     value:
-      persons:
+      data:
         - first: "string"
           last: "string"
           ssn: "000-00-0000"
@@ -62,7 +62,7 @@ MatchRequestExamples:
   "Multiple Persons":
     description: "A request with multiple persons"
     value:
-      persons:
+      data:
         - first: "string"
           last: "string"
           ssn: "000-00-0000"

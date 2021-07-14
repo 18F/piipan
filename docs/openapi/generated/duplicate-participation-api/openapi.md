@@ -44,7 +44,7 @@ Queries all state databases for any PII records that are an exact match to the l
 
 ```json
 {
-  "persons": [
+  "data": [
     {
       "first": "string",
       "middle": "string",

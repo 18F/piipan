@@ -20,9 +20,9 @@ paths:
             schema:
               type: object
               required:
-                - persons
+                - data
               properties:
-                persons:
+                data:
                   type: array
                   minItems: 1
                   maxItems: 50
@@ -350,7 +350,7 @@ paths:
                   - data
                 properties:
                   data:
-                    $ref: '#/paths/~1query/post/requestBody/content/application~1json/schema/properties/persons/items'
+                    $ref: '#/paths/~1query/post/requestBody/content/application~1json/schema/properties/data/items'
               examples:
                 All:
                   description: A response showing a query with values for all fields

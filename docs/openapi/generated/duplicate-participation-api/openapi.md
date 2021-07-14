@@ -60,7 +60,7 @@ Queries all state databases for any PII records that are an exact match to the l
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
-|persons|body|[[#/paths/~1query/post/requestBody/content/application~1json/schema/properties/persons/items](#schema#/paths/~1query/post/requestbody/content/application~1json/schema/properties/persons/items)]|true|none|
+|data|body|[[#/paths/~1query/post/requestBody/content/application~1json/schema/properties/data/items](#schema#/paths/~1query/post/requestbody/content/application~1json/schema/properties/data/items)]|true|none|
 
 > Example responses
 

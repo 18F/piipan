@@ -39,7 +39,8 @@ namespace Piipan.QueryTool.Pages
                     MatchResponse result = await _apiRequest.Match(Query);
 
                     QueryResult = result;
-                    NoResults = QueryResult.matches.Count == 0;
+                    NoResults = QueryResult.Data.Results.Count == 0 ||
+                        QueryResult.Data.Results[0].Matches.Count == 0;
                     Title = "NAC Query Results";
                 }
                 catch (Exception exception)

@@ -26,7 +26,7 @@ namespace Piipan.QueryTool
         {
             const string Endpoint = "query";
 
-            var request = new MatchRequest { Query = query };
+            var request = new MatchRequest { Data = new List<PiiRecord> { query } };
             var json = JsonSerializer.Serialize(request);
             var response = await _apiClient.PostAsync(
                 new Uri(_baseUri, Endpoint),
@@ -59,9 +59,44 @@ namespace Piipan.QueryTool
 
     public class MatchResponse
     {
+        [JsonPropertyName("data")]
+        public MatchResponseData Data { get; set; } = new MatchResponseData();
+    }
+
+    public class MatchResponseData
+    {
+        [JsonPropertyName("results")]
+        public List<MatchResult> Results { get; set; } = new List<MatchResult>();
+
+        [JsonPropertyName("errors")]
+        public List<MatchError> Errors { get; set; } = new List<MatchError>();
+    }
+
+    public class MatchResult
+    {
+        [JsonPropertyName("index")]
+        public int Index { get; set; }
+
         [JsonPropertyName("lookup_id")]
-        public virtual string lookupId { get; set; }
-        public virtual List<PiiRecord> matches { get; set; }
+        public virtual string LookupId { get; set; }
+
+        [JsonPropertyName("matches")]
+        public virtual List<PiiRecord> Matches { get; set; }
+    }
+
+    public class MatchError
+    {
+        [JsonPropertyName("index")]
+        public int Index { get; set; }
+
+        [JsonPropertyName("code")]
+        public string Code { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("detail")]
+        public string Detail { get; set; }
     }
 
     public class LookupResponse

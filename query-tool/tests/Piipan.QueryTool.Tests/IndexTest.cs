@@ -67,16 +67,23 @@ namespace Piipan.QueryTool.Tests
         {
             // arrange
             var returnValue = @"{
-                ""lookup_id"": ""BBB2222"",
-                ""matches"": [{
-                    ""first"": ""Theodore"",
-                    ""middle"": ""Carri"",
-                    ""last"": ""Farrington"",
-                    ""ssn"": ""000-00-0000"",
-                    ""dob"": ""2021-01-01"",
-                    ""state"": ""ea"",
-                    ""state_abbr"": ""ea""
-                }]
+                ""data"": {
+                    ""results"": [
+                        {
+                            ""lookup_id"": ""BBB2222"",
+                            ""matches"": [{
+                                ""first"": ""Theodore"",
+                                ""middle"": ""Carri"",
+                                ""last"": ""Farrington"",
+                                ""ssn"": ""000-00-0000"",
+                                ""dob"": ""2021-01-01"",
+                                ""state"": ""ea"",
+                                ""state_abbr"": ""ea""
+                            }]
+                        }
+                    ],
+                    ""errors"": []
+                }
             }";
             var requestPii = new PiiRecord
             {
@@ -95,7 +102,7 @@ namespace Piipan.QueryTool.Tests
             // assert
             Assert.IsType<MatchResponse>(pageModel.QueryResult);
             Assert.NotNull(pageModel.QueryResult);
-            Assert.NotNull(pageModel.QueryResult.matches);
+            Assert.NotNull(pageModel.QueryResult.Data.Results[0].Matches);
             Assert.False(pageModel.NoResults);
         }
 
@@ -104,8 +111,15 @@ namespace Piipan.QueryTool.Tests
         {
             // arrange
             var returnValue = @"{
-                ""lookup_id"": null,
-                ""matches"": []
+                ""data"": {
+                    ""results"": [
+                        {
+                            ""lookup_id"": null,
+                            ""matches"": []
+                        }
+                    ],
+                    ""errors"": []
+                }
             }";
             var requestPii = new PiiRecord
             {
@@ -123,8 +137,8 @@ namespace Piipan.QueryTool.Tests
 
             // assert
             Assert.IsType<MatchResponse>(pageModel.QueryResult);
-            Assert.Null(pageModel.QueryResult.lookupId);
-            Assert.Empty(pageModel.QueryResult.matches);
+            Assert.Null(pageModel.QueryResult.Data.Results[0].LookupId);
+            Assert.Empty(pageModel.QueryResult.Data.Results[0].Matches);
             Assert.True(pageModel.NoResults);
         }
 

@@ -16,18 +16,25 @@ namespace Piipan.QueryTool.Tests
         {
             // arrange
             var mockResponse = @"{
-                ""lookup_id"": ""BBB2222"",
-                ""matches"": [
-                    {
-                        ""first"": ""Theodore"",
-                        ""middle"": ""Carri"",
-                        ""last"": ""Farrington"",
-                        ""ssn"": ""000-00-0000"",
-                        ""dob"": ""2021-01-01"",
-                        ""state"": ""ea"",
-                        ""state_abbr"": ""ea""
-                    }
-                ]
+                ""data"": {
+                    ""results"": [
+                        {
+                            ""lookup_id"": ""BBB2222"",
+                            ""matches"": [
+                                {
+                                    ""first"": ""Theodore"",
+                                    ""middle"": ""Carri"",
+                                    ""last"": ""Farrington"",
+                                    ""ssn"": ""000-00-0000"",
+                                    ""dob"": ""2021-01-01"",
+                                    ""state"": ""ea"",
+                                    ""state_abbr"": ""ea""
+                                }
+                            ]
+                        }
+                    ],
+                    ""errors"": []
+                }
             }";
             var query = new PiiRecord
             {
@@ -50,17 +57,18 @@ namespace Piipan.QueryTool.Tests
 
             // act
             var result = await api.Match(query);
+            var match = result.Data.Results[0].Matches[0];
 
             // assert
             Assert.IsType<MatchResponse>(result);
-            Assert.Single(result.matches);
-            Assert.Equal("BBB2222", result.lookupId);
-            Assert.Equal("Theodore", result.matches[0].FirstName);
-            Assert.Equal("Carri", result.matches[0].MiddleName);
-            Assert.Equal("Farrington", result.matches[0].LastName);
-            Assert.Equal("000-00-0000", result.matches[0].SocialSecurityNum);
-            Assert.Equal(new DateTime(2021, 1, 1), result.matches[0].DateOfBirth);
-            Assert.Equal("ea", result.matches[0].State);
+            Assert.Single(result.Data.Results[0].Matches);
+            Assert.Equal("BBB2222", result.Data.Results[0].LookupId);
+            Assert.Equal("Theodore", match.FirstName);
+            Assert.Equal("Carri", match.MiddleName);
+            Assert.Equal("Farrington", match.LastName);
+            Assert.Equal("000-00-0000", match.SocialSecurityNum);
+            Assert.Equal(new DateTime(2021, 1, 1), match.DateOfBirth);
+            Assert.Equal("ea", match.State);
         }
 
         [Fact]

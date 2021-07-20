@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -6,8 +7,8 @@ namespace Piipan.QueryTool
 {
     public class MatchRequest
     {
-        [JsonPropertyName("query")]
-        public PiiRecord Query { get; set; }
+        [JsonPropertyName("data")]
+        public List<PiiRecord> Data { get; set; }
     }
 
     public class PiiRecord : IQueryable

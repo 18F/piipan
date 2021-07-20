@@ -1,37 +1,47 @@
 @model MatchResponse
-@if (Model != null && Model.matches.Any())
+@if (@Model != null && @Model.Data != null && @Model.Data.Results.Any())
 {
     <h2>Results</h2>
-    <table class="usa-table">
-    <caption>Lookup ID: @Model.lookupId</caption>
-    <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">DOB</th>
-            <th scope="col">SSN</th>
-            <th scope="col">State</th>
-            <th scope="col">Case ID</th>
-            <th scope="col">Participant ID</th>
-            <th scope="col">Benefits end month</th>
-            <th scope="col">Recent benefits months</th>
-            <th scope="col">Protected location for vulnerable individuals</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var record in @Model.matches)
-            {
+    @foreach (var result in @Model.Data.Results)
+    {
+        @if (result.Matches.Any())
+        {
+            <table class="usa-table">
+            <caption>Lookup ID: @result.LookupId</caption>
+            <thead>
                 <tr>
-                    <td>@record.FirstName @record.MiddleName @record.LastName</td>
-                    <td>@Html.DisplayFor(m => record.DateOfBirth)</td>
-                    <td>@record.SocialSecurityNum</td>
-                    <td>@record.State</td>
-                    <td>@record.CaseId</td>
-                    <td>@record.ParticipantId</td>
-                    <td>@record.BenefitsEndMonth</td>
-                    <td>@record.RecentBenefitMonthsDisplay</td>
-                    <td>@record.ProtectLocationDisplay</td>
+                    <th scope="col">Name</th>
+                    <th scope="col">DOB</th>
+                    <th scope="col">SSN</th>
+                    <th scope="col">State</th>
+                    <th scope="col">Case ID</th>
+                    <th scope="col">Participant ID</th>
+                    <th scope="col">Benefits end month</th>
+                    <th scope="col">Recent benefits months</th>
+                    <th scope="col">Protected location for vulnerable individuals</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var record in result.Matches)
+                    {
+                        <tr>
+                            <td>@record.FirstName @record.MiddleName @record.LastName</td>
+                            <td>@Html.DisplayFor(m => record.DateOfBirth)</td>
+                            <td>@record.SocialSecurityNum</td>
+                            <td>@record.State</td>
+                            <td>@record.CaseId</td>
+                            <td>@record.ParticipantId</td>
+                            <td>@record.BenefitsEndMonth</td>
+                            <td>@record.RecentBenefitMonthsDisplay</td>
+                            <td>@record.ProtectLocationDisplay</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        } else
+        {
+            <h3>No matches found</h3>
+        }
+    }
 }
+

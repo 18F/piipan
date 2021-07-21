@@ -28,6 +28,7 @@ Base URLs:
 curl -X POST /v1/query \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
+  -H 'X-username: string' \
   -H 'Ocp-Apim-Subscription-Key: API_KEY'
 
 ```
@@ -60,6 +61,7 @@ Queries all state databases for any PII records that are an exact match to the l
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
+|X-username|header|string|false|The username of the individual making the request|
 |data|body|[[#/paths/~1query/post/requestBody/content/application~1json/schema/properties/data/items](#schema#/paths/~1query/post/requestbody/content/application~1json/schema/properties/data/items)]|true|none|
 
 > Example responses
@@ -371,6 +373,7 @@ ApiKeyAuth
 # You can also use wget
 curl -X GET /v1/lookup_ids/{id} \
   -H 'Accept: application/json' \
+  -H 'X-username: string' \
   -H 'Ocp-Apim-Subscription-Key: API_KEY'
 
 ```
@@ -380,6 +383,12 @@ curl -X GET /v1/lookup_ids/{id} \
 *Get the original match data related to a Lookup ID*
 
 User can provide a Lookup ID and receive the match data associated with it
+
+<h3 id="get-lookups-by-id-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|X-username|header|string|false|The username of the individual making the request|
 
 > Example responses
 

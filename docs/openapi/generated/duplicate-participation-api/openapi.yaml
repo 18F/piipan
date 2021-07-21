@@ -13,6 +13,12 @@ paths:
         - Match
       summary: Search for all matching PII records
       description: 'Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number of persons provided in the request.'
+      parameters:
+        - in: header
+          name: X-username
+          schema:
+            type: string
+          description: The username of the individual making the request
       requestBody:
         required: true
         content:
@@ -339,6 +345,12 @@ paths:
         - Lookup
       summary: Get the original match data related to a Lookup ID
       description: User can provide a Lookup ID and receive the match data associated with it
+      parameters:
+        - in: header
+          name: X-username
+          schema:
+            type: string
+          description: The username of the individual making the request
       responses:
         '200':
           description: Successful response. Returns original match query request item.

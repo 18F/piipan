@@ -4,6 +4,12 @@ post:
     - "Match"
   summary: "Search for all matching PII records"
   description: "Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number of persons provided in the request."
+  parameters:
+    - in: header
+      name: X-username
+      schema:
+        type: string
+      description: "The username of the individual making the request"
   requestBody:
     $ref: '../schemas/match-query.yaml#/MatchRequest'
   responses:

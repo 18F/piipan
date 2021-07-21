@@ -4,6 +4,12 @@ get:
     - "Lookup"
   summary: "Get the original match data related to a Lookup ID"
   description: "User can provide a Lookup ID and receive the match data associated with it"
+  parameters:
+    - in: header
+      name: X-username
+      schema:
+        type: string
+      description: "The username of the individual making the request"
   responses:
     '200':
       description: "Successful response. Returns original match query request item."

@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Moq;
 using Piipan.Shared.Authentication;
 using Xunit;
@@ -65,9 +67,15 @@ namespace Piipan.Match.Orchestrator.Tests
         {
             // Arrange
             var api = ConstructMockedApi();
+            var mockRequest = new Mock<HttpRequest>();
+            var headers = new HeaderDictionary(new Dictionary<String, StringValues>
+            {
+                { "X-username", "foobar"}
+            }) as IHeaderDictionary;
+            mockRequest.Setup(x => x.Headers).Returns(headers);
 
             // Act
-            var result = await api.LookupIds(Mock.Of<HttpRequest>(), "ABC1234", Mock.Of<ILogger>());
+            var result = await api.LookupIds(mockRequest.Object, "ABC1234", Mock.Of<ILogger>());
             var jsonResult = result as JsonResult;
             var lookupResponse = jsonResult.Value as LookupResponse;
 

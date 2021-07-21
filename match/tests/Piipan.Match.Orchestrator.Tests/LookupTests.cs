@@ -43,7 +43,7 @@ namespace Piipan.Match.Orchestrator.Tests
         [Fact]
         public void LookupResponseJson()
         {
-            var mq = new MatchQuery
+            var mq = new RequestPerson
             {
                 First = "first",
                 Middle = "middle",
@@ -74,7 +74,7 @@ namespace Piipan.Match.Orchestrator.Tests
             // Assert
             Assert.IsType<JsonResult>(result);
             Assert.IsType<LookupResponse>(jsonResult.Value);
-            Assert.IsType<MatchQuery>(lookupResponse.Data);
+            Assert.IsType<RequestPerson>(lookupResponse.Data);
         }
     }
 }

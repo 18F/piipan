@@ -4,10 +4,10 @@ using Piipan.Match.Shared;
 
 namespace Piipan.Match.Orchestrator
 {
-    public class MatchQueryRequest
+    public class PersonMatchRequest
     {
         [JsonProperty("query", Required = Required.Always)]
-        public MatchQuery Query { get; set; }
+        public PersonMatchQuery Query { get; set; }
 
         public string ToJson()
         {
@@ -15,7 +15,7 @@ namespace Piipan.Match.Orchestrator
         }
     }
 
-    public class MatchQuery
+    public class PersonMatchQuery
     {
         [JsonProperty("last", Required = Required.Always)]
         public string Last { get; set; }

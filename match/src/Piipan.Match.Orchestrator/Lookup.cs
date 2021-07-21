@@ -19,10 +19,10 @@ namespace Piipan.Match.Orchestrator
         /// <param name="query">MatchQuery instance for saving</param>
         /// <param name="tableStorage">handle to the table storage instance</param>
         /// <param name="log">handle to the function log</param>
-        public static async Task<string> Save(MatchQuery query, ITableStorage<QueryEntity> tableStorage, ILogger log)
+        public static async Task<string> Save(RequestPerson person, ITableStorage<QueryEntity> tableStorage, ILogger log)
         {
             var entity = new QueryEntity(PartitionKey, LookupId.Generate());
-            entity.Body = query.ToJson();
+            entity.Body = person.ToJson();
 
             // Lookup IDs are generated randomly from a large pool, but collision
             // is still possible. Retry failed inserts a limited number of times.
@@ -56,9 +56,9 @@ namespace Piipan.Match.Orchestrator
         /// <param name="lookupId">the unique lookup ID (RowKey) for the row</param>
         /// <param name="tableStorage">handle to the table storage instance</param>
         /// <param name="log">handle to the function log</param>
-        public static async Task<MatchQuery> Retrieve(string lookupId, ITableStorage<QueryEntity> tableStorage, ILogger log)
+        public static async Task<RequestPerson> Retrieve(string lookupId, ITableStorage<QueryEntity> tableStorage, ILogger log)
         {
-            MatchQuery query = null;
+            RequestPerson person = null;
 
             // Case-insensitive matching
             lookupId = lookupId.ToUpper();
@@ -67,10 +67,10 @@ namespace Piipan.Match.Orchestrator
 
             if (row != null)
             {
-                query = JsonConvert.DeserializeObject<MatchQuery>(row.Body);
+                person = JsonConvert.DeserializeObject<RequestPerson>(row.Body);
             }
 
-            return query;
+            return person;
         }
     }
 

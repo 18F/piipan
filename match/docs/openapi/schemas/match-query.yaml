@@ -71,7 +71,6 @@ MatchRequestExamples:
           last: "string"
           ssn: "000-00-0001"
           dob: "1970-01-02"
-
 #/components/schemas/MatchResponse
 MatchResponse:
   type: object

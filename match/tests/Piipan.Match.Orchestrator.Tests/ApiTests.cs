@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
+using Piipan.Match.Shared;
 using Piipan.Shared.Authentication;
 using Xunit;
 
@@ -44,27 +45,72 @@ namespace Piipan.Match.Orchestrator.Tests
             };
         }
 
-        static MatchQueryRequest FullRequest()
+        static OrchMatchRequest FullRequest()
         {
-            return new MatchQueryRequest
+            return new OrchMatchRequest
             {
-                Query = new MatchQuery
+                Data = new List<RequestPerson>() {
+                    new RequestPerson
+                    {
+                        First = "First",
+                        Middle = "Middle",
+                        Last = "Last",
+                        Dob = new DateTime(1970, 1, 1),
+                        Ssn = "000-00-0000"
+                    }
+                }
+            };
+        }
+
+        static OrchMatchRequest FullRequestMultiple()
+        {
+            return new OrchMatchRequest
+            {
+                Data = new List<RequestPerson>() {
+                    new RequestPerson
+                    {
+                        First = "First",
+                        Middle = "Middle",
+                        Last = "Last",
+                        Dob = new DateTime(1970, 1, 1),
+                        Ssn = "000-00-0000"
+                    },
+                    new RequestPerson
+                    {
+                        First = "FirstTwo",
+                        Middle = "MiddleTwo",
+                        Last = "LastTwo",
+                        Dob = new DateTime(1970, 1, 2),
+                        Ssn = "000-00-0001"
+                    }
+                }
+            };
+        }
+
+        static OrchMatchRequest OverMaxRequest() {
+            var list = new List<RequestPerson>();
+            for (int i = 0; i < 51; i++)
+            {
+                list.Add(new RequestPerson
                 {
                     First = "First",
                     Middle = "Middle",
                     Last = "Last",
                     Dob = new DateTime(1970, 1, 1),
                     Ssn = "000-00-0000"
-                }
-            };
+                });
+            }
+            return new OrchMatchRequest { Data = list };
         }
 
-        static MatchQueryResponse FullResponse()
+        static OrchMatchResult StateResponse()
         {
-            return new MatchQueryResponse
+            var stateResponse = new OrchMatchResult
             {
+                Index = 0,
                 Matches = new List<PiiRecord> { FullRecord() }
             };
+            return stateResponse;
         }
 
         static String JsonBody(string json)
@@ -93,16 +139,26 @@ namespace Piipan.Match.Orchestrator.Tests
             return mockRequest;
         }
 
-        static Mock<HttpMessageHandler> MockMessageHandler(HttpStatusCode status, string response)
+        static HttpResponseMessage MockResponse(System.Net.HttpStatusCode statusCode, string body)
         {
+            return new HttpResponseMessage
+            {
+              StatusCode = statusCode,
+              Content = new StringContent(body, Encoding.UTF8, "application/json")
+            };
+        }
+
+        static Mock<HttpMessageHandler> MockMessageHandler(List<HttpResponseMessage> responses)
+        {
+            var responseQueue = new Queue<HttpResponseMessage>();
+            foreach (HttpResponseMessage response in responses)
+            {
+                responseQueue.Enqueue(response);
+            }
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = status,
-                    Content = new StringContent(response, Encoding.UTF8, "application/json")
-                })
+                .ReturnsAsync(responseQueue.Dequeue)
                 .Verifiable();
 
             return mockHttpMessageHandler;
@@ -135,7 +191,7 @@ namespace Piipan.Match.Orchestrator.Tests
                 .Returns<string, string>((pk, rk) =>
                 {
                     var qe = new QueryEntity(pk, rk);
-                    qe.Body = mockQuery.Query.ToJson();
+                    qe.Body = mockQuery.Data[0].ToJson();
                     return Task.FromResult(qe);
                 });
 
@@ -211,19 +267,24 @@ namespace Piipan.Match.Orchestrator.Tests
             var response = await api.Query(mockRequest.Object, logger);
 
             // Assert
-            Assert.IsType<BadRequestResult>(response);
-            var result = response as BadRequestResult;
+            var result = response as BadRequestObjectResult;
             Assert.Equal(400, result.StatusCode);
+
+            var errorResponse = result.Value as ApiErrorResponse;
+            Assert.Equal(1, (int)errorResponse.Errors.Count);
+            Assert.Equal("400", errorResponse.Errors[0].Status);
+            Assert.NotEmpty(errorResponse.Errors[0].Title);
+            Assert.NotEmpty(errorResponse.Errors[0].Detail);
         }
 
         // Invalid data results in BadRequest
         [Theory]
-        [InlineData(@"{last: 'Last', dob: '2020-01-01', ssn: '000-00-000'}")] // Invalid Ssn format
-        [InlineData(@"{last: '', dob: '2020-01-01', ssn: '000-00-0000'}")] // Empty last
-        [InlineData(@"{last: '        ', dob: '2020-01-01', ssn: '000-00-0000'}")] // Whitespace last
-        [InlineData(@"{last: 'Last', first: '', dob: '2020-01-01', ssn: '000-00-000'}")] // Empty first
-        [InlineData(@"{last: 'Last', first: '       ', dob: '2020-01-01', ssn: '000-00-000'}")] // Whitespace first
-        [InlineData(@"{last: 'Last', dob: '2020-01-01', ssn: '000000000'}")] // Invalid Ssn format
+        [InlineData(@"[{last: 'Last', dob: '2020-01-01', ssn: '000-00-000'}]")] // Invalid Ssn format
+        [InlineData(@"[{last: '', dob: '2020-01-01', ssn: '000-00-0000'}]")] // Empty last
+        [InlineData(@"[{last: '        ', dob: '2020-01-01', ssn: '000-00-0000'}]")] // Whitespace last
+        [InlineData(@"[{last: 'Last', first: '', dob: '2020-01-01', ssn: '000-00-000'}]")] // Empty first
+        [InlineData(@"[{last: 'Last', first: '       ', dob: '2020-01-01', ssn: '000-00-000'}]")] // Whitespace first
+        [InlineData(@"[{last: 'Last', dob: '2020-01-01', ssn: '000000000'}]")] // Invalid Ssn format
         public async void ExpectBadResultFromInvalidData(string query)
         {
             // Arrange
@@ -235,20 +296,25 @@ namespace Piipan.Match.Orchestrator.Tests
             var response = await api.Query(mockRequest.Object, logger);
 
             // Assert
-            Assert.IsType<BadRequestResult>(response);
-            var result = response as BadRequestResult;
+            var result = response as BadRequestObjectResult;
             Assert.Equal(400, result.StatusCode);
+
+            var errorResponse = result.Value as ApiErrorResponse;
+            Assert.Equal(1, (int)errorResponse.Errors.Count);
+            Assert.Equal("400", errorResponse.Errors[0].Status);
+            Assert.NotEmpty(errorResponse.Errors[0].Title);
+            Assert.NotEmpty(errorResponse.Errors[0].Detail);
         }
 
         // Incomplete data results in BadRequest
         [Theory]
         [InlineData("")]
-        [InlineData(@"{first: 'First'}")] // Missing Last, Dob, and Ssn
-        [InlineData(@"{last: 'Last'}")] // Missing Dob and Ssn
-        [InlineData(@"{last: 'Last', dob: '2020-01-01'}")] // Missing Ssn
-        [InlineData(@"{last: 'Last', dob: '2020-01-1', ssn: '000-00-000'}")] // Invalid Dob DateTime
-        [InlineData(@"{last: 'Last', dob: '', ssn: '000-00-000'}")] // Empty Dob DateTime
-        [InlineData(@"{last: 'Last', dob: '2020-01-01', ssn: '000-00-000'}")] // Missing First
+        [InlineData(@"[{first: 'First'}]")] // Missing Last, Dob, and Ssn
+        [InlineData(@"[{last: 'Last'}]")] // Missing Dob and Ssn
+        [InlineData(@"[{last: 'Last', dob: '2020-01-01'}]")] // Missing Ssn
+        [InlineData(@"[{last: 'Last', dob: '2020-01-1', ssn: '000-00-000'}]")] // Invalid Dob DateTime
+        [InlineData(@"[{last: 'Last', dob: '', ssn: '000-00-000'}]")] // Empty Dob DateTime
+        [InlineData(@"[{last: 'Last', dob: '2020-01-01', ssn: '000-00-000'}]")] // Missing First
         public async void ExpectBadResultFromIncompleteData(string query)
         {
             // Arrange
@@ -260,9 +326,14 @@ namespace Piipan.Match.Orchestrator.Tests
             var response = await api.Query(mockRequest.Object, logger);
 
             // Assert
-            Assert.IsType<BadRequestResult>(response);
-            var result = response as BadRequestResult;
+            var result = response as BadRequestObjectResult;
             Assert.Equal(400, result.StatusCode);
+
+            var errorResponse = result.Value as ApiErrorResponse;
+            Assert.Equal(1, (int)errorResponse.Errors.Count);
+            Assert.Equal("400", errorResponse.Errors[0].Status);
+            Assert.NotEmpty(errorResponse.Errors[0].Title);
+            Assert.NotEmpty(errorResponse.Errors[0].Detail);
         }
 
         // Successful API call
@@ -272,7 +343,9 @@ namespace Piipan.Match.Orchestrator.Tests
             // Arrange Mocks
             var logger = Mock.Of<ILogger>();
             var mockRequest = MockRequest(FullRequest().ToJson());
-            var mockHandler = MockMessageHandler(HttpStatusCode.OK, FullResponse().ToJson());
+            var mockHandler = MockMessageHandler(new List<HttpResponseMessage>() {
+                MockResponse(HttpStatusCode.OK, StateResponse().ToJson())
+            });
 
             // Arrage Environment
             var uriString = "[\"https://localhost/\"]";
@@ -300,7 +373,9 @@ namespace Piipan.Match.Orchestrator.Tests
             // Arrange Mocks
             var logger = Mock.Of<ILogger>();
             var mockRequest = MockRequest(FullRequest().ToJson());
-            var mockHandler = MockMessageHandler(HttpStatusCode.InternalServerError, "");
+            var mockHandler = MockMessageHandler(new List<HttpResponseMessage>() {
+                MockResponse(HttpStatusCode.InternalServerError, "")
+            });
 
             // Arrage Environment
             var uriString = "[\"https://localhost/\"]";
@@ -309,9 +384,17 @@ namespace Piipan.Match.Orchestrator.Tests
             // Act
             var api = ConstructMocked(mockHandler);
             var response = await api.Query(mockRequest.Object, logger);
+            var result = response as JsonResult;
+            var resBody = result.Value as OrchMatchResponse;
+            var error = resBody.Data.Errors[0];
 
             // Assert
-            Assert.IsType<InternalServerErrorResult>(response);
+            Assert.Equal(0, (int)resBody.Data.Results.Count);
+            Assert.Equal(1, (int)resBody.Data.Errors.Count);
+            Assert.Equal(0, error.Index);
+            Assert.NotNull(error.Code);
+            Assert.NotNull(error.Detail);
+
         }
 
         // Required services are passed to Api on startup
@@ -325,6 +408,140 @@ namespace Piipan.Match.Orchestrator.Tests
 
             Assert.NotNull(host);
             Assert.NotNull(host.Services.GetRequiredService<IAuthorizedApiClient>());
+        }
+
+        // Multiple Queries tests
+        // Successful API call
+        [Fact]
+        public async void SuccessfulApiCallMultipleQueries()
+        {
+            // Arrange Mocks
+            var logger = Mock.Of<ILogger>();
+            var mockRequest = MockRequest(FullRequestMultiple().ToJson());
+            var mockHandler = MockMessageHandler(new List<HttpResponseMessage>() {
+                MockResponse(HttpStatusCode.OK, StateResponse().ToJson()),
+                MockResponse(HttpStatusCode.OK, StateResponse().ToJson())
+            });
+
+            // Arrage Environment
+            var uriString = "[\"https://localhost/\"]";
+            Environment.SetEnvironmentVariable("StateApiUriStrings", uriString);
+
+            // Act
+            var api = ConstructMocked(mockHandler);
+            var response = await api.Query(mockRequest.Object, logger);
+
+            // Assert - top-level data
+            var res = response as JsonResult;
+            var resBody = res.Value as OrchMatchResponse;
+            Assert.Equal(2, (int)resBody.Data.Results.Count);
+            Assert.Equal(0, (int)resBody.Data.Errors.Count);
+
+            // Assert results data
+            var result = resBody.Data.Results[0];
+            Assert.NotEmpty(result.Matches);
+            Assert.Equal(0, result.Index);
+
+            mockHandler.Protected().Verify(
+                "SendAsync",
+                Times.Exactly(2),
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            );
+        }
+
+        // Over the max number pf persons in a request
+        [Fact]
+        public async void OverMaxInRequestReturnsError()
+        {
+            // Arrange Mocks
+            var logger = Mock.Of<ILogger>();
+            var mockRequest = MockRequest(OverMaxRequest().ToJson());
+            var mockHandler = MockMessageHandler(new List<HttpResponseMessage>() {
+                MockResponse(HttpStatusCode.OK, StateResponse().ToJson())
+            });
+
+            // Arrage Environment
+            var uriString = "[\"https://localhost/\"]";
+            Environment.SetEnvironmentVariable("StateApiUriStrings", uriString);
+
+            // Act
+            var api = ConstructMocked(mockHandler);
+            var response = await api.Query(mockRequest.Object, logger);
+
+            // Assert
+            var result = response as BadRequestObjectResult;
+            Assert.Equal(400, result.StatusCode);
+
+            var errorResponse = result.Value as ApiErrorResponse;
+            Assert.Equal(1, (int)errorResponse.Errors.Count);
+            Assert.Equal("400", errorResponse.Errors[0].Status);
+            Assert.NotEmpty(errorResponse.Errors[0].Title);
+            Assert.NotEmpty(errorResponse.Errors[0].Detail);
+        }
+
+        // Multiple persons in request——returns error for one and success for another
+        [Fact]
+        public async void ItemLevelErrorIsPresent()
+        {
+            // Arrange Mocks
+            var logger = Mock.Of<ILogger>();
+            var mockRequest = MockRequest(FullRequestMultiple().ToJson());
+            var mockHandler = MockMessageHandler(new List<HttpResponseMessage>() {
+                MockResponse(HttpStatusCode.OK, StateResponse().ToJson()),
+                MockResponse(HttpStatusCode.InternalServerError, "")
+            });
+
+            // Arrage Environment
+            var uriString = "[\"https://localhost/\"]";
+            Environment.SetEnvironmentVariable("StateApiUriStrings", uriString);
+
+            // Act
+            var api = ConstructMocked(mockHandler);
+            var response = await api.Query(mockRequest.Object, logger);
+            var res = response as JsonResult;
+            var resBody = res.Value as OrchMatchResponse;
+            var error = resBody.Data.Errors[0];
+
+            // Assert
+            Assert.Equal(1, (int)resBody.Data.Results.Count);
+            Assert.Equal(1, (int)resBody.Data.Errors.Count);
+            Assert.Equal(1, error.Index);
+            Assert.NotNull(error.Code);
+            Assert.NotNull(error.Detail);
+        }
+
+        // Whole thing blows up and returns a top-level error
+        [Fact]
+        public async void ReturnsInternalServerError()
+        {
+            // Arrange
+            var api = Construct();
+            Mock<HttpRequest> mockRequest = MockRequest("foobar");
+            var logger = new Mock<ILogger>();
+
+            // Set up first log to throw an exception
+            // How to mock LogInformation: https://stackoverflow.com/a/58413842
+            logger.SetupSequence(x => x.Log(
+                It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()))
+            .Throws(new Exception("example message"));
+
+            // Act
+            var response = await api.Query(mockRequest.Object, logger.Object);
+            var result = response as JsonResult;
+            var resBody = result.Value as ApiErrorResponse;
+            var error = resBody.Errors[0];
+
+            // Assert
+            Assert.Equal(500, result.StatusCode);
+            Assert.NotEmpty(resBody.Errors);
+            Assert.Equal("500", error.Status);
+            Assert.NotNull(error.Title);
+            Assert.NotNull(error.Detail);
         }
     }
 }

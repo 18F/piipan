@@ -8,7 +8,7 @@ namespace Piipan.Match.Orchestrator
     {
 
         [JsonProperty("data")]
-        public MatchQuery Data { get; set; }
+        public RequestPerson Data { get; set; }
 
         public string ToJson()
         {

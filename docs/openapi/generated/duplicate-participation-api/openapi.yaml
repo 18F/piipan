@@ -12,7 +12,7 @@ paths:
       tags:
         - Match
       summary: Search for all matching PII records
-      description: 'Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number in the request body''s `query` property.'
+      description: 'Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number of persons provided in the request.'
       requestBody:
         required: true
         content:
@@ -20,10 +20,12 @@ paths:
             schema:
               type: object
               required:
-                - query
+                - data
               properties:
-                query:
+                data:
                   type: array
+                  minItems: 1
+                  maxItems: 50
                   items:
                     type: object
                     required:
@@ -51,26 +53,26 @@ paths:
                         description: PII record's date of birth
             examples:
               All fields:
-                description: 'An example request to query a single individual, with values for all fields'
+                description: 'An example request to query a single person, with values for all fields'
                 value:
-                  query:
+                  data:
                     - first: string
                       middle: string
                       last: string
                       ssn: 000-00-0000
                       dob: '1970-01-01'
               Only requried fields:
-                description: A request with values only for required fields
+                description: A request to query a single person with values only for required fields
                 value:
-                  query:
+                  data:
                     - first: string
                       last: string
                       ssn: 000-00-0000
                       dob: '1970-01-01'
-              Multiple Records:
-                description: A request with multiple records
+              Multiple Persons:
+                description: A request with multiple persons
                 value:
-                  query:
+                  data:
                     - first: string
                       last: string
                       ssn: 000-00-0000
@@ -86,172 +88,248 @@ paths:
             application/json:
               schema:
                 type: object
-                required:
-                  - data
                 properties:
                   data:
-                    type: array
-                    description: 'Array of match query response items. For every match query item provided in the request, a match response item is returned, even if no matches are found.'
+                    type: object
+                    nullable: true
+                    description: 'The response payload. Either an errors or data property will be present in the response, but not both.'
                     required:
-                      - index
+                      - results
+                      - errors
                     properties:
-                      index:
-                        type: integer
-                        description: 'The index of the request item that the response item corresponds to, starting from 0. Index is derived from the implicit order of match query request items provided in the request.'
-                      lookup_id:
-                        type: string
-                        nullable: true
-                        description: 'The identifier of the match request item, if a match is present. This ID can be used for looking up the PII of the original match request item.'
-                      matches:
+                      results:
                         type: array
-                        items:
-                          type: object
-                          required:
-                            - last
-                            - ssn
-                            - dob
-                          properties:
-                            first:
-                              type: string
-                              description: First name
-                            middle:
-                              type: string
-                              description: Middle name
-                            last:
-                              type: string
-                              description: Last name
-                            ssn:
-                              type: string
-                              description: Social Security number
-                              pattern: '^\d{3}-\d{2}-\d{4}$'
-                            dob:
-                              type: string
-                              format: date
-                              description: Date of birth
-                            state:
-                              type: string
-                              description: State/territory two-letter postal abbreviation
-                            state_abbr:
-                              type: string
-                              description: 'State/territory two-letter postal abbreviation. Deprecated, superseded by `state`.'
-                              deprecated: true
-                            exception:
-                              type: string
-                              description: Placeholder for value indicating special processing instructions
-                            case_id:
-                              type: string
-                              description: Participant's state-specific case identifier. Can be the same for multiple participants.
-                            participant_id:
-                              type: string
-                              description: Participant's state-specific identifier. Is unique to the participant. Must not be social security number or any PII.
-                            benefits_end_month:
-                              type: string
-                              pattern: '^\d{4}-\d{2}$'
-                              example: 2021-01
-                              description: Participant's ending benefits month
-                            recent_benefit_months:
-                              type: array
-                              items:
-                                type: string
-                                pattern: '^\d{4}-\d{2}$'
-                                example: 2021-01
-                              minItems: 0
-                              maxItems: 3
-                              description: 'List of up to the last 3 months that participant received benefits, in descending order. Each month is formatted as ISO 8601 year and month. Does not include current benefit month.'
-                            protect_location:
-                              type: boolean
-                              nullable: true
-                              example: true
-                              description: Location protection flag for vulnerable individuals. True values indicate that the individual’s location must be protected from disclosure to avoid harm to the individual. Apply the same protections to true and null values.
+                        description: 'Array of query results. For every person provided in the request, a result is returned for every successful query, even if no matches are found. If a query fails, the failure data will be in the errors array.'
+                        required:
+                          - index
+                          - matches
+                        properties:
+                          index:
+                            type: integer
+                            description: 'The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request.'
+                          lookup_id:
+                            type: string
+                            nullable: true
+                            description: 'The identifier of the person data, if a match is present. This ID can be used for looking up the PII of the person provided in the original request.'
+                          matches:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - last
+                                - ssn
+                                - dob
+                              properties:
+                                first:
+                                  type: string
+                                  description: First name
+                                middle:
+                                  type: string
+                                  description: Middle name
+                                last:
+                                  type: string
+                                  description: Last name
+                                ssn:
+                                  type: string
+                                  description: Social Security number
+                                  pattern: '^\d{3}-\d{2}-\d{4}$'
+                                dob:
+                                  type: string
+                                  format: date
+                                  description: Date of birth
+                                state:
+                                  type: string
+                                  description: State/territory two-letter postal abbreviation
+                                state_abbr:
+                                  type: string
+                                  description: 'State/territory two-letter postal abbreviation. Deprecated, superseded by `state`.'
+                                  deprecated: true
+                                exception:
+                                  type: string
+                                  description: Placeholder for value indicating special processing instructions
+                                case_id:
+                                  type: string
+                                  description: Participant's state-specific case identifier. Can be the same for multiple participants.
+                                participant_id:
+                                  type: string
+                                  description: Participant's state-specific identifier. Is unique to the participant. Must not be social security number or any PII.
+                                benefits_end_month:
+                                  type: string
+                                  pattern: '^\d{4}-\d{2}$'
+                                  example: 2021-01
+                                  description: Participant's ending benefits month
+                                recent_benefit_months:
+                                  type: array
+                                  items:
+                                    type: string
+                                    pattern: '^\d{4}-\d{2}$'
+                                    example: 2021-01
+                                  minItems: 0
+                                  maxItems: 3
+                                  description: 'List of up to the last 3 months that participant received benefits, in descending order. Each month is formatted as ISO 8601 year and month. Does not include current benefit month.'
+                                protect_location:
+                                  type: boolean
+                                  nullable: true
+                                  example: true
+                                  description: Location protection flag for vulnerable individuals. True values indicate that the individual’s location must be protected from disclosure to avoid harm to the individual. Apply the same protections to true and null values.
+                      errors:
+                        type: array
+                        description: 'Array of error objects corresponding to a person in the request. If a query for a single person fails, the failure data will display here.'
+                        required:
+                          - index
+                        properties:
+                          index:
+                            type: integer
+                            description: 'The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request.'
+                          code:
+                            type: string
+                            description: The application-specific error code
+                          title:
+                            type: string
+                            description: 'The short, human-readable summary of the error, consistent across all occurrences of the error'
+                          detail:
+                            type: string
+                            description: The human-readable explanation specific to this occurrence of the error
+                  errors:
+                    type: array
+                    nullable: true
+                    description: 'Holds HTTP and other top-level errors. Either an errors or data property will be present in the response, but not both.'
+                    required:
+                      - status
+                    properties:
+                      status:
+                        type: string
+                        description: The HTTP status code
+                      code:
+                        type: string
+                        description: The application-specific error code
+                      title:
+                        type: string
+                        description: 'The short, human-readable summary of the error, consistent across all occurrences of the error'
+                      detail:
+                        type: string
+                        description: The human-readable explanation specific to this occurrence of the error
               examples:
                 Single:
-                  description: A query for a single individual returning a single match
+                  description: A query for a single person returning a single match
                   value:
                     data:
-                      - index: 0
-                        lookup_id: string
-                        matches:
-                          - first: string
-                            middle: string
-                            last: string
-                            ssn: 000-00-0000
-                            dob: '1970-01-01'
-                            state: ea
-                            state_abbr: ea
-                            exception: string
-                            case_id: string
-                            participant_id: string
-                            benefits_end_month: 2021-01
-                            recent_benefit_months:
-                              - 2021-05
-                              - 2021-04
-                              - 2021-03
-                            protect_location: true
+                      results:
+                        - index: 0
+                          lookup_id: string
+                          matches:
+                            - first: string
+                              middle: string
+                              last: string
+                              ssn: 000-00-0000
+                              dob: '1970-01-01'
+                              state: ea
+                              state_abbr: ea
+                              exception: string
+                              case_id: string
+                              participant_id: string
+                              benefits_end_month: 2021-01
+                              recent_benefit_months:
+                                - 2021-05
+                                - 2021-04
+                                - 2021-03
+                              protect_location: true
+                      errors: []
                 None:
-                  description: A query for a single individual returning no matches
+                  description: A query for a single person returning no matches
                   value:
                     data:
-                      - index: 0
-                        lookup_id: null
-                        matches: []
+                      results:
+                        - index: 0
+                          lookup_id: null
+                          matches: []
+                      errors: []
                 Multiple:
-                  description: A query for one individual returning multiple matches
+                  description: A query for one person returning multiple matches
                   value:
                     data:
-                      - index: 0
-                        lookup_id: string
-                        matches:
-                          - first: string
-                            middle: string
-                            last: string
-                            ssn: 000-00-0000
-                            dob: '1970-01-01'
-                            state: eb
-                            state_abbr: eb
-                            exception: string
-                            case_id: string
-                            participant_id: string
-                            benefits_end_month: 2021-01
-                            recent_benefit_months:
-                              - 2021-05
-                              - 2021-04
-                              - 2021-03
-                            protect_location: true
-                          - first: null
-                            middle: null
-                            last: string
-                            ssn: 000-00-0000
-                            dob: '1970-01-01'
-                            state: ec
-                            state_abbr: ec
-                            exception: null
-                            case_id: string
-                            participant_id: null
-                            benefits_end_month: null
-                            protect_location: null
+                      results:
+                        - index: 0
+                          lookup_id: string
+                          matches:
+                            - first: string
+                              middle: string
+                              last: string
+                              ssn: 000-00-0000
+                              dob: '1970-01-01'
+                              state: eb
+                              state_abbr: eb
+                              exception: string
+                              case_id: string
+                              participant_id: string
+                              benefits_end_month: 2021-01
+                              recent_benefit_months:
+                                - 2021-05
+                                - 2021-04
+                                - 2021-03
+                              protect_location: true
+                            - first: null
+                              middle: null
+                              last: string
+                              ssn: 000-00-0000
+                              dob: '1970-01-01'
+                              state: ec
+                              state_abbr: ec
+                              exception: null
+                              case_id: string
+                              participant_id: null
+                              benefits_end_month: null
+                              protect_location: null
+                      errors: []
                 MultipleRecords:
-                  description: A query for two individuals returning one match for each individual
+                  description: A query for two persons returning one match for each person
                   value:
                     data:
-                      - index: 0
-                        lookup_id: string
-                        matches:
-                          - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/0/matches/1'
-                      - index: 1
-                        lookup_id: string
-                        matches:
-                          - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/0/matches/1'
+                      results:
+                        - index: 0
+                          lookup_id: string
+                          matches:
+                            - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/results/0/matches/1'
+                        - index: 1
+                          lookup_id: string
+                          matches:
+                            - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/results/0/matches/1'
+                      errors: []
                 MultipleRecordsOneMatch:
-                  description: A query for two individuals returning no matches for one individual and a match for the other
+                  description: A query for two persons returning no matches for one person and a match for the other
                   value:
                     data:
-                      - index: 0
-                        lookup_id: null
-                        matches: []
-                      - index: 1
-                        lookup_id: string
-                        matches:
-                          - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/0/matches/1'
+                      results:
+                        - index: 0
+                          lookup_id: null
+                          matches: []
+                        - index: 1
+                          lookup_id: string
+                          matches:
+                            - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/results/0/matches/1'
+                      errors: []
+                MultipleRecordsOneError:
+                  description: A query for two persons returning a successful result for one person and an error for the other person
+                  value:
+                    data:
+                      results:
+                        - index: 1
+                          lookup_id: string
+                          matches:
+                            - $ref: '#/paths/~1query/post/responses/200/content/application~1json/examples/Multiple/value/data/results/0/matches/1'
+                      errors:
+                        - index: 0
+                          code: XYZ
+                          title: Internal Server Exception
+                          detail: Unexpected Server Error. Please try again.
+                TopLevelError:
+                  description: An example response for an invalid request
+                  value:
+                    errors:
+                      - status: '400'
+                        code: XYZ
+                        title: Bad Request
+                        detail: Request payload exceeds maxiumum count
         '400':
           description: Bad request. Missing one of the required properties in the request body.
   '/lookup_ids/{id}':
@@ -272,7 +350,7 @@ paths:
                   - data
                 properties:
                   data:
-                    $ref: '#/paths/~1query/post/requestBody/content/application~1json/schema/properties/query/items'
+                    $ref: '#/paths/~1query/post/requestBody/content/application~1json/schema/properties/data/items'
               examples:
                 All:
                   description: A response showing a query with values for all fields

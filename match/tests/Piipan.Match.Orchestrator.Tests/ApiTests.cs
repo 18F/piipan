@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
@@ -135,6 +136,11 @@ namespace Piipan.Match.Orchestrator.Tests
 
             var mockRequest = new Mock<HttpRequest>();
             mockRequest.Setup(x => x.Body).Returns(ms);
+            var headers = new HeaderDictionary(new Dictionary<String, StringValues>
+            {
+                { "X-username", "foobar"}
+            }) as IHeaderDictionary;
+            mockRequest.Setup(x => x.Headers).Returns(headers);
 
             return mockRequest;
         }

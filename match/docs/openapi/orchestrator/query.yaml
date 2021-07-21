@@ -3,17 +3,23 @@ post:
   tags:
     - "Match"
   summary: "Search for all matching PII records"
-  description: "Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number in the request body's `query` property."
+  description: "Queries all state databases for any PII records that are an exact match to the last name, date of birth, and social security number of persons provided in the request."
+  parameters:
+    - in: header
+      name: X-username
+      schema:
+        type: string
+      description: "The username of the individual making the request"
   requestBody:
-    $ref: '../schemas/match-query.yaml#/MatchQueryRequest'
+    $ref: '../schemas/match-query.yaml#/MatchRequest'
   responses:
     '200':
       description: "Successful response. Returns match response items."
       content:
         application/json:
           schema:
-            $ref: '../schemas/match-query.yaml#/MatchQueryResponse'
+            $ref: '../schemas/match-query.yaml#/MatchResponse'
           examples:
-            $ref: '../schemas/match-query.yaml#/MatchQueryResponseExamples'
+            $ref: '../schemas/match-query.yaml#/MatchResponseExamples'
     '400':
       description: "Bad request. Missing one of the required properties in the request body."

@@ -1,20 +1,22 @@
-#/components/requestBodies/MatchQueryRequest
-MatchQueryRequest:
+#/components/requestBodies/MatchRequest
+MatchRequest:
   required: true
   content:
     application/json:
       schema:
         type: object
         required:
-            - query
+            - data
         properties:
-          query:
+          data:
             type: array
+            minItems: 1
+            maxItems: 50
             items:
-              $ref: '#/MatchQueryRequestItem'
+              $ref: '#/Person'
       examples:
-        $ref: '#/MatchQueryRequestExamples'
-MatchQueryRequestItem:
+        $ref: '#/MatchRequestExamples'
+Person:
   type: object
   required:
     - first
@@ -39,28 +41,28 @@ MatchQueryRequestItem:
       type: string
       format: "date"
       description: "PII record's date of birth"
-MatchQueryRequestExamples:
+MatchRequestExamples:
   "All fields":
-    description: "An example request to query a single individual, with values for all fields"
+    description: "An example request to query a single person, with values for all fields"
     value:
-      query:
+      data:
         - first: "string"
           middle: "string"
           last: "string"
           ssn: "000-00-0000"
           dob: "1970-01-01"
   "Only requried fields":
-    description: "A request with values only for required fields"
+    description: "A request to query a single person with values only for required fields"
     value:
-      query:
+      data:
         - first: "string"
           last: "string"
           ssn: "000-00-0000"
           dob: "1970-01-01"
-  "Multiple Records":
-    description: "A request with multiple records"
+  "Multiple Persons":
+    description: "A request with multiple persons"
     value:
-      query:
+      data:
         - first: "string"
           last: "string"
           ssn: "000-00-0000"
@@ -70,79 +72,163 @@ MatchQueryRequestExamples:
           ssn: "000-00-0001"
           dob: "1970-01-02"
 
-#/components/schemas/MatchQueryResponse
-MatchQueryResponse:
+#/components/schemas/MatchResponse
+MatchResponse:
   type: object
-  required:
-    - data
   properties:
     data:
+      type: object
+      nullable: true
+      description: The response payload. Either an errors or data property will be present in the response, but not both.
+      required:
+        - results
+        - errors
+      properties:
+        results:
+          type: array
+          $ref: '#/Result'
+          description: "Array of query results. For every person provided in the request, a result is returned for every successful query, even if no matches are found. If a query fails, the failure data will be in the errors array."
+        errors:
+          type: array
+          description: "Array of error objects corresponding to a person in the request. If a query for a single person fails, the failure data will display here."
+          $ref: '#/DataError'
+    errors:
       type: array
-      $ref: '#/MatchQueryResponseItem'
-      description: Array of match query response items. For every match query item provided in the request, a match response item is returned, even if no matches are found.
+      nullable: true
+      description: "Holds HTTP and other top-level errors. Either an errors or data property will be present in the response, but not both."
+      $ref: '#/ResponseError'
 
-MatchQueryResponseItem:
+Result:
+  type: object
+  required:
+    - index
+    - matches
+  properties:
+    index:
+      type: integer
+      description: "The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request."
+    lookup_id:
+      type: string
+      nullable: true
+      description: "The identifier of the person data, if a match is present. This ID can be used for looking up the PII of the person provided in the original request."
+    matches:
+      type: array
+      items:
+        $ref: './pii-record.yaml#/PiiRecord'
+
+MatchResponseExamples:
+  Single:
+    description: "A query for a single person returning a single match"
+    value:
+      data:
+        results:
+          - index: 0
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/All'
+        errors: []
+  None:
+    description: "A query for a single person returning no matches"
+    value:
+      data:
+        results:
+          - index: 0
+            lookup_id: null
+            matches: []
+        errors: []
+  Multiple:
+    description: "A query for one person returning multiple matches"
+    value:
+      data:
+        results:
+          - index: 0
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/AllEB'
+              - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+        errors: []
+  MultipleRecords:
+    description: "A query for two persons returning one match for each person"
+    value:
+      data:
+        results:
+          - index: 0
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+          - index: 1
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+        errors: []
+  MultipleRecordsOneMatch:
+    description: "A query for two persons returning no matches for one person and a match for the other"
+    value:
+      data:
+        results:
+          - index: 0
+            lookup_id: null
+            matches: []
+          - index: 1
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+        errors: []
+  MultipleRecordsOneError:
+    description: "A query for two persons returning a successful result for one person and an error for the other person"
+    value:
+      data:
+        results:
+          - index: 1
+            lookup_id: "string"
+            matches:
+              - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+        errors:
+          - index: 0
+            code: "XYZ"
+            title: "Internal Server Exception"
+            detail: "Unexpected Server Error. Please try again."
+  TopLevelError:
+    description: "An example response for an invalid request"
+    value:
+      errors:
+        - status: "400"
+          code: "XYZ"
+          title: "Bad Request"
+          detail: "Request payload exceeds maxiumum count"
+
+DataError:
   type: object
   required:
     - index
   properties:
     index:
       type: integer
-      description: The index of the request item that the response item corresponds to, starting from 0. Index is derived from the implicit order of match query request items provided in the request.
-    lookup_id:
+      description: "The index of the person that the result corresponds to, starting from 0. Index is derived from the implicit order of persons provided in the request."
+    code:
       type: string
-      nullable: true
-      description: "The identifier of the match request item, if a match is present. This ID can be used for looking up the PII of the original match request item."
-    matches:
-      type: array
-      items:
-        $ref: './pii-record.yaml#/PiiRecord'
+      description: "The application-specific error code"
+    title:
+      type: string
+      description: "The short, human-readable summary of the error, consistent across all occurrences of the error"
+    detail:
+      type: string
+      description: "The human-readable explanation specific to this occurrence of the error"
 
-MatchQueryResponseExamples:
-  Single:
-    description: "A query for a single individual returning a single match"
-    value:
-      data:
-        - index: 0
-          lookup_id: "string"
-          matches:
-            - $ref: './pii-record.yaml#/PiiRecordExamples/All'
-  None:
-    description: "A query for a single individual returning no matches"
-    value:
-      data:
-        - index: 0
-          lookup_id: null
-          matches: []
-  Multiple:
-    description: "A query for one individual returning multiple matches"
-    value:
-      data:
-        - index: 0
-          lookup_id: "string"
-          matches:
-            - $ref: './pii-record.yaml#/PiiRecordExamples/AllEB'
-            - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
-  MultipleRecords:
-    description: "A query for two individuals returning one match for each individual"
-    value:
-      data:
-        - index: 0
-          lookup_id: "string"
-          matches:
-            - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
-        - index: 1
-          lookup_id: "string"
-          matches:
-            - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
-  MultipleRecordsOneMatch:
-    description: "A query for two individuals returning no matches for one individual and a match for the other"
-    value:
-      data:
-        - index: 0
-          lookup_id: null
-          matches: []
-        - index: 1
-          lookup_id: "string"
-          matches:
-            - $ref: './pii-record.yaml#/PiiRecordExamples/Required'
+ResponseError:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      type: string
+      description: "The HTTP status code"
+    code:
+      type: string
+      description: "The application-specific error code"
+    title:
+      type: string
+      description: "The short, human-readable summary of the error, consistent across all occurrences of the error"
+    detail:
+      type: string
+      description: "The human-readable explanation specific to this occurrence of the error"
